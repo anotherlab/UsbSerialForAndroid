@@ -23,7 +23,7 @@ This solution contains two projects.
 ## Getting Started
 **1.** Reference the library to your project
 
-**2.** Copy the device_filter.axml from the example app to your Resources/xml folder.  Make sure that the Build Action is set to AndroidResource
+**2.** Copy the [device_filter.axml](https://github.com/anotherlab/UsbSerialForAndroid/blob/master/UsbSerialExampleApp/Resources/xml/device_filter.xml) from the example app to your Resources/xml folder.  Make sure that the Build Action is set to AndroidResource
 
 **3.** Add the following attribute to the main activity to enable the USB Host
 ```C#

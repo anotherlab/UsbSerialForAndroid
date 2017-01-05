@@ -40,7 +40,7 @@ This solution contains two projects.
 [MetaData(UsbManager.ActionUsbDeviceAttached, Resource = "@xml/device_filter")]
 ```
 
-**6.** Refer to MainActivity.cs in the example app to see how connect to a serial device and read data from it.
+**6.** Refer to [MainActivity.cs](https://github.com/anotherlab/UsbSerialForAndroid/blob/master/UsbSerialExampleApp/MainActivity.cs) in the example app to see how connect to a serial device and read data from it.
 
 ## Working with unrecognized devices
 The UsbSerialForAndroid has been compiled with the Vendor ID/Product ID pairs for many common serial devices.  If you have a device that is not defined by the library, but will work with one of the drivers, you can manually add the VID/PID pair.

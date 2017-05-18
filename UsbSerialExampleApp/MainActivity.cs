@@ -122,7 +122,7 @@ namespace UsbSerialExampleApp
                 return;
             }
 
-            // request user permisssion to connect to device
+            // request user permission to connect to device
             // NOTE: no request is shown to user if permission already granted
             selectedPort = adapter.GetItem(e.Position);
             var permissionGranted = await usbManager.RequestPermissionAsync(selectedPort.Driver.Device, this);
@@ -219,13 +219,13 @@ namespace UsbSerialExampleApp
                 this.activity = activity;
             }
 
-            public override void OnReceive(Context context, Intent intent)
+            public async override void OnReceive(Context context, Intent intent)
             {
                 var device = intent.GetParcelableExtra(UsbManager.ExtraDevice) as UsbDevice;
 
                 Log.Info(TAG, "USB device detached: " + device.DeviceName);
 
-                activity.PopulateListAsync();
+                await activity.PopulateListAsync();
             }
         }
 

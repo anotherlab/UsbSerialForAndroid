@@ -2,4 +2,6 @@
 <resources>
   <string name="app_name">USB Serial Example</string>
   <string name="refreshing">Refreshing...</string>
+  <string name="sleep">Sleep</string>
+  <string name="wakeup">Wakeup</string>
 </resources>

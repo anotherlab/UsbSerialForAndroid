@@ -48,6 +48,8 @@ namespace UsbSerialExampleApp
         static readonly string TAG = typeof(SerialConsoleActivity).Name;
 
         public const string EXTRA_TAG = "PortInfo";
+        const int READ_WAIT_MILLIS = 200;
+        const int WRITE_WAIT_MILLIS = 200;
 
         UsbSerialPort port;
 
@@ -55,6 +57,8 @@ namespace UsbSerialExampleApp
         TextView titleTextView;
         TextView dumpTextView;
         ScrollView scrollView;
+        Button sleepButton;
+        Button wakeButton;
 
         SerialInputOutputManager serialIoManager;
 
@@ -70,7 +74,27 @@ namespace UsbSerialExampleApp
             titleTextView = FindViewById<TextView>(Resource.Id.demoTitle);
             dumpTextView = FindViewById<TextView>(Resource.Id.consoleText);
             scrollView = FindViewById<ScrollView>(Resource.Id.demoScroller);
+
+            sleepButton = FindViewById<Button>(Resource.Id.sleepButton);
+            wakeButton = FindViewById<Button>(Resource.Id.wakeupButton);
+
+            // The following arrays contain data that is used for a custom firmware for
+            // the Elatec TWN4 RFID reader. This code is included here to show how to
+            // send data back to a USB serial device
+            byte[] sleepdata = new byte[] { 0xf0, 0x04, 0x10, 0xf1 };
+            byte[] wakedata = new byte[] { 0xf0, 0x04, 0x11, 0xf1 };
+
+            sleepButton.Click += delegate
+            {
+                WriteData(sleepdata);
+            };
+
+            wakeButton.Click += delegate
+            {
+                WriteData(wakedata);
+            };
         }
+
         protected override void OnPause()
         {
             Log.Info(TAG, "OnPause");
@@ -147,6 +171,14 @@ namespace UsbSerialExampleApp
             {
                 titleTextView.Text = "Error opening device: " + e.Message;
                 return;
+            }
+        }
+
+        void WriteData(byte[] data)
+        {
+            if (serialIoManager.IsOpen)
+            {
+                port.Write(data, WRITE_WAIT_MILLIS);
             }
         }
 

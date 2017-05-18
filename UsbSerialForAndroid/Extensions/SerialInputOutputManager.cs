@@ -64,7 +64,6 @@ namespace Hoho.Android.UsbSerial.Extensions
 
         public event EventHandler<UnhandledExceptionEventArgs> ErrorReceived;
 
-
         public void Open(UsbManager usbManager, int bufferSize = DEFAULT_BUFFERSIZE)
         {
             if (disposed)
@@ -152,7 +151,7 @@ namespace Hoho.Android.UsbSerial.Extensions
             if (disposed)
                 return;
 
-            if (disposing)
+            if (disposing && (cancelationTokenSource != null))
             {
                 Close();
             }

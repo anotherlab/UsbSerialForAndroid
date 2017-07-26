@@ -70,14 +70,14 @@ namespace Hoho.Android.UsbSerial.Driver
             private static int PROLIFIC_VENDOR_READ_REQUEST = 0x01;
             private static int PROLIFIC_VENDOR_WRITE_REQUEST = 0x01;
 
-            private static int PROLIFIC_VENDOR_OUT_REQTYPE = UsbSupport.UsbDirIn
+            private static int PROLIFIC_VENDOR_OUT_REQTYPE = UsbSupport.UsbDirOut
                                                              | UsbConstants.UsbTypeVendor;
 
             private static int PROLIFIC_VENDOR_IN_REQTYPE = UsbSupport.UsbDirIn
                                                             | UsbConstants.UsbTypeVendor;
 
             private static int PROLIFIC_CTRL_OUT_REQTYPE = UsbSupport.UsbDirOut
-                                                           | UsbConstants.UsbTypeVendor | USB_RECIP_INTERFACE;
+                                                           | UsbConstants.UsbTypeClass | USB_RECIP_INTERFACE;
 
             private const int WRITE_ENDPOINT = 0x02;
             private const int READ_ENDPOINT = 0x83;

@@ -18,7 +18,8 @@
  * Project home page: https://github.com/anotherlab/xamarin-usb-serial-for-android
  * Portions of this library are based on usb-serial-for-android (https://github.com/mik3y/usb-serial-for-android).
  * Portions of this library are based on Xamarin USB Serial for Android (https://bitbucket.org/lusovu/xamarinusbserial).
- */
+ * Portions of this library are based on UsbSerial https://github.com/felHR85/UsbSerial
+ *  */
 
 using System;
 using System.Collections.Generic;
@@ -114,6 +115,18 @@ namespace Hoho.Android.UsbSerial.Driver
 
             public static int FTDI_DEVICE_IN_REQTYPE =
                 UsbConstants.UsbTypeVendor | USB_RECIP_DEVICE | USB_ENDPOINT_IN;
+
+            /**
+             *  RTS and DTR values obtained from FreeBSD FTDI driver
+             *  https://github.com/freebsd/freebsd/blob/70b396ca9c54a94c3fad73c3ceb0a76dffbde635/sys/dev/usb/serial/uftdi_reg.h
+             */
+            private static int FTDI_SIO_SET_DTR_MASK = 0x1;
+            private static int FTDI_SIO_SET_DTR_HIGH = (1 | (FTDI_SIO_SET_DTR_MASK << 8));
+            private static int FTDI_SIO_SET_DTR_LOW = (0 | (FTDI_SIO_SET_DTR_MASK << 8));
+            private static int FTDI_SIO_SET_RTS_MASK = 0x2;
+            private static int FTDI_SIO_SET_RTS_HIGH = (2 | (FTDI_SIO_SET_RTS_MASK << 8));
+            private static int FTDI_SIO_SET_RTS_LOW = (0 | (FTDI_SIO_SET_RTS_MASK << 8));
+            private bool rts;
 
             /**
              * Length of the modem status header, transmitted with every read.
@@ -553,11 +566,32 @@ namespace Hoho.Android.UsbSerial.Driver
 
             public override Boolean GetRTS()
             {
-                return false;
+                return rts;
             }
 
             public override void SetRTS(Boolean value)
             {
+                if (value)
+                {
+                    int result = mConnection.ControlTransfer((UsbAddressing)FTDI_DEVICE_OUT_REQTYPE,
+                                                             SIO_MODEM_CTRL_REQUEST,
+                                                             FTDI_SIO_SET_RTS_HIGH,
+                                                             0 /* index */,
+                                                             null,
+                                                             0,
+                                                             USB_WRITE_TIMEOUT_MILLIS);
+                }
+                else
+                {
+                    int result = mConnection.ControlTransfer((UsbAddressing)FTDI_DEVICE_OUT_REQTYPE,
+                                                             SIO_MODEM_CTRL_REQUEST,
+                                                             FTDI_SIO_SET_RTS_LOW,
+                                                             0 /* index */,
+                                                             null,
+                                                             0,
+                                                             USB_WRITE_TIMEOUT_MILLIS);
+                }
+                rts = value;
             }
 
             public override Boolean PurgeHwBuffers(Boolean purgeReadBuffers, Boolean purgeWriteBuffers)

@@ -47,6 +47,9 @@ namespace Hoho.Android.UsbSerial.Driver
         // non-null when open()
         protected UsbDeviceConnection mConnection = null;
 
+        // check if connection is still available
+        public bool HasConnection => mConnection != null;
+
         protected object mReadBufferLock = new object();
         protected object mWriteBufferLock = new object();
 

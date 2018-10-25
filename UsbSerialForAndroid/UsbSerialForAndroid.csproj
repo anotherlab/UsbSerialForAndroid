@@ -68,6 +68,7 @@
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\HexDump.cs" />
+    <Compile Include="driver\STM32SerialDriver.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

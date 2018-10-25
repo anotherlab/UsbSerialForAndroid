@@ -77,5 +77,8 @@ namespace Hoho.Android.UsbSerial.Driver
         public static readonly int ELATEC_TWN4_CDC = 0x0420;
         public static readonly int ELATEC_TWN4_SC_READER = 0x0428;   // Uses CCID protocol, not serial
 
+		public static readonly int VENDOR_STM = 0x0483;
+		public static readonly int STM32_STLINK = 0x374B;
+		public static readonly int STM32_VCOM = 0x5740;
     }
 }

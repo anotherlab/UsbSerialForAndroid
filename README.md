@@ -1,5 +1,7 @@
 # UsbSerialForAndroid
 
+[![Build Status](https://chrismillercode.visualstudio.com/UsbSerialForAndroid/_apis/build/status/anotherlab.UsbSerialForAndroid?branchName=master)](https://chrismillercode.visualstudio.com/UsbSerialForAndroid/_build/latest?definitionId=1&branchName=master)
+
 This is a driver library to allow your Xamarin Android app to communicate with many common USB serial hardware.  It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
 available on Android 3.1+.
 

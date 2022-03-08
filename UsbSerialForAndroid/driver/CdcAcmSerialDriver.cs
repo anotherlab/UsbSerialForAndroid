@@ -46,10 +46,10 @@ namespace Hoho.Android.UsbSerial.Driver
     {
         private static string TAG = typeof(CdcAcmSerialDriver).Name;
 
-        public CdcAcmSerialDriver(UsbDevice device)
+        public CdcAcmSerialDriver(UsbDevice device, bool? enableAsyncReads = null)
         {
             mDevice = device;
-            mPort = new CdcAcmSerialPort(device, 0, this);
+            mPort = new CdcAcmSerialPort(device, 0, this, enableAsyncReads);
         }
 
         class CdcAcmSerialPort : CommonUsbSerialPort
@@ -80,10 +80,17 @@ namespace Hoho.Android.UsbSerial.Driver
             //    mEnableAsyncReads = (Build.VERSION.SdkInt >= BuildVersionCodes.JellyBeanMr1);
             //}
 
-            public CdcAcmSerialPort(UsbDevice device, int portNumber, IUsbSerialDriver driver) : base(device, portNumber)
+            public CdcAcmSerialPort(UsbDevice device, int portNumber, IUsbSerialDriver driver, bool? enableAsyncReads = null) : base(device, portNumber)
             {
-                mEnableAsyncReads = (Build.VERSION.SdkInt >= BuildVersionCodes.JellyBeanMr1);
-                //mEnableAsyncReads = false;
+                if (enableAsyncReads != null)
+                {
+                    mEnableAsyncReads = enableAsyncReads.Value;
+                }
+                else
+                {
+                    mEnableAsyncReads = (Build.VERSION.SdkInt >= BuildVersionCodes.JellyBeanMr1);
+
+                }
                 this.Driver = driver;
             }
 

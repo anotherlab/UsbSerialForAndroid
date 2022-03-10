@@ -2,18 +2,25 @@
 
 [![Build Status](https://chrismillercode.visualstudio.com/UsbSerialForAndroid/_apis/build/status/anotherlab.UsbSerialForAndroid?branchName=master)](https://chrismillercode.visualstudio.com/UsbSerialForAndroid/_build/latest?definitionId=1&branchName=master)
 
-This is a driver library to allow your Xamarin Android app to communicate with many common USB serial hardware.  It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
+This is a driver library to allow your Xamarin Android app to communicate with many common USB serial hardware. It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
 available on Android 3.1+.
 
 No root access, ADK, or special kernel drivers are required; all drivers are implemented in
-c#.  You get a raw serial port with `Read()`, `Write()`, and other basic
-functions for use with your own protocols.  The appropriate driver is picked based on the device's Vendor ID and Product ID.
+c#. You get a raw serial port with `Read()`, `Write()`, and other basic
+functions for use with your own protocols. The appropriate driver is picked based on the device's Vendor ID and Product ID.
 
-This is a Xamarin C# port of Mike Wakerly's Java [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android) library.  It follows that library very closely.  The main changes were to make the method names follow C# standard naming conventions.  Some Java specific data types were replaced with .NET types and the reflection code is .NET specific.  Code examples written for the Java version of the library should translate more or less faithfully to C#.
+This is a Xamarin C# port of Mike Wakerly's Java [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android) library. It followed that library very closely when it was ported. The main changes were to make the method names follow C# standard naming conventions. Some Java specific data types were replaced with .NET types and the reflection code is .NET specific. Code examples written for the Java version of the library should translate more or less faithfully to C#.
 
-It also includes code derived from LusoVU's [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) library.  XamarinUsbSerial was a C# wrapper for the Java usb-serial-for-android.  It used an older version of the usb-serial-for-android .jar file.  
+It also includes code derived from a portion of LusoVU's [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) library. XamarinUsbSerial was a C# wrapper for the Java usb-serial-for-android. It used an older version of the usb-serial-for-android .jar file. Only the the C# code was used, the Java library is not referenced.
 
-UsbSerialForAndroid is a 100% C# port of the original java code.
+The default branch has been renamed from master to main. if you have a local clone, you can run the following commands to update the name of the default branch
+
+```
+git branch -m master main
+git fetch origin
+git branch -u origin/main main
+git remote set-head origin -a
+```
 
 ## Structure
 
@@ -25,7 +32,7 @@ This solution contains two projects.
 ## Getting Started
 **1.** Reference the library to your project
 
-**2.** Copy the [device_filter.axml](https://github.com/anotherlab/UsbSerialForAndroid/blob/master/UsbSerialExampleApp/Resources/xml/device_filter.xml) from the example app to your Resources/xml folder.  Make sure that the Build Action is set to AndroidResource
+**2.** Copy the [device_filter.axml](https://github.com/anotherlab/UsbSerialForAndroid/blob/master/UsbSerialExampleApp/Resources/xml/device_filter.xml) from the example app to your Resources/xml folder. Make sure that the Build Action is set to AndroidResource
 
 **3.** Add the following attribute to the main activity to enable the USB Host
 ```C#
@@ -45,10 +52,10 @@ This solution contains two projects.
 **6.** Refer to [MainActivity.cs](https://github.com/anotherlab/UsbSerialForAndroid/blob/master/UsbSerialExampleApp/MainActivity.cs) in the example app to see how connect to a serial device and read data from it.
 
 ## Working with unrecognized devices
-The UsbSerialForAndroid has been compiled with the Vendor ID/Product ID pairs for many common serial devices.  If you have a device that is not defined by the library, but will work with one of the drivers, you can manually add the VID/PID pair.
+The UsbSerialForAndroid has been compiled with the Vendor ID/Product ID pairs for many common serial devices. If you have a device that is not defined by the library, but will work with one of the drivers, you can manually add the VID/PID pair.
 
 UsbSerialProber is a class to help you find and instantiate compatible
-UsbSerialDrivers from the tree of connected UsbDevices.  Normally, you will use
+UsbSerialDrivers from the tree of connected UsbDevices. Normally, you will use
 the default prober returned by ``UsbSerialProber.getDefaultProber()``, which
 uses the built-in list of well-known VIDs and PIDs that are supported by our
 drivers.
@@ -95,5 +102,4 @@ For other help and discussion, please join the usb-serial-for-android Google Gro
 
 This library is licensed under LGPL Version 2.1. Please see LICENSE.txt for the complete license.
 
-Copyright 2017, Tyler Technologies.  All Rights Reserved.  Portions of this library are based on the [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android) and [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) libraries.  Their rights remain intact.
-
+Copyright 2017, Tyler Technologies. All Rights Reserved. Portions of this library are based on the [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android) and [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) libraries. Their rights remain intact.

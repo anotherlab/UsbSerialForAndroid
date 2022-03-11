@@ -1,4 +1,5 @@
 /* Copyright 2017 Tyler Technologies Inc.
+/* Copyright 2017 Tyler Technologies Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -42,10 +43,20 @@ using Math = System.Math;
 using String = System.String;
 using Hoho.Android.UsbSerial.Extensions;
 
+/*
+ * driver is implemented from various information scattered over FTDI documentation
+ *
+ * baud rate calculation https://www.ftdichip.com/Support/Documents/AppNotes/AN232B-05_BaudRates.pdf
+ * control bits https://www.ftdichip.com/Firmware/Precompiled/UM_VinculumFirmware_V205.pdf
+ * device type https://www.ftdichip.com/Support/Documents/AppNotes/AN_233_Java_D2XX_for_Android_API_User_Manual.pdf -> bvdDevice
+ *
+ */
+
 namespace Hoho.Android.UsbSerial.Driver
 {
     public class FtdiSerialDriver : UsbSerialDriver
     {
+        private List<UsbSerialPort> mPorts;
         private enum DeviceType
         {
             TYPE_BM,
@@ -60,95 +71,59 @@ namespace Hoho.Android.UsbSerial.Driver
         {
             mDevice = device;
             mPort = new FtdiSerialPort(mDevice, 0, this);
+
+            mPorts = new List<UsbSerialPort>();
+
+            for (int port = 0; port < device.InterfaceCount; port++)
+            {
+                mPorts.Add(new FtdiSerialPort(mDevice, port));
+            }
+        }
+
+        // Needs to refactored
+        public override List<UsbSerialPort> GetPorts()
+        {
+            return mPorts;
         }
 
         private class FtdiSerialPort : CommonUsbSerialPort
         {
-            public static int USB_TYPE_STANDARD = 0x00 << 5;
-            public static int USB_TYPE_CLASS = 0x00 << 5;
-            public static int USB_TYPE_VENDOR = 0x00 << 5;
-            public static int USB_TYPE_RESERVED = 0x00 << 5;
+            private static int USB_WRITE_TIMEOUT_MILLIS = 5000;
+            private static int READ_HEADER_LENGTH = 2; // contains MODEM_STATUS
 
-            public static int USB_RECIP_DEVICE = 0x00;
-            public static int USB_RECIP_INTERFACE = 0x01;
-            public static int USB_RECIP_ENDPOINT = 0x02;
-            public static int USB_RECIP_OTHER = 0x03;
+            // https://developer.android.com/reference/android/hardware/usb/UsbConstants#USB_DIR_IN
+            private static int REQTYPE_HOST_TO_DEVICE = UsbConstants.UsbTypeVendor | 128; // UsbConstants.USB_DIR_OUT;
+            private static int REQTYPE_DEVICE_TO_HOST = UsbConstants.UsbTypeVendor | 0;   // UsbConstants.USB_DIR_IN;
 
-            public static int USB_ENDPOINT_IN = 0x80;
-            public static int USB_ENDPOINT_OUT = 0x00;
+            private static int RESET_REQUEST = 0;
+            private static int MODEM_CONTROL_REQUEST = 1;
+            private static int SET_BAUD_RATE_REQUEST = 3;
+            private static int SET_DATA_REQUEST = 4;
+            private static int GET_MODEM_STATUS_REQUEST = 5;
+            private static int SET_LATENCY_TIMER_REQUEST = 9;
+            private static int GET_LATENCY_TIMER_REQUEST = 10;
 
-            public static int USB_WRITE_TIMEOUT_MILLIS = 5000;
-            public static int USB_READ_TIMEOUT_MILLIS = 5000;
+            private static int MODEM_CONTROL_DTR_ENABLE = 0x0101;
+            private static int MODEM_CONTROL_DTR_DISABLE = 0x0100;
+            private static int MODEM_CONTROL_RTS_ENABLE = 0x0202;
+            private static int MODEM_CONTROL_RTS_DISABLE = 0x0200;
+            private static int MODEM_STATUS_CTS = 0x10;
+            private static int MODEM_STATUS_DSR = 0x20;
+            private static int MODEM_STATUS_RI = 0x40;
+            private static int MODEM_STATUS_CD = 0x80;
+            private static int RESET_ALL = 0;
+            private static int RESET_PURGE_RX = 1;
+            private static int RESET_PURGE_TX = 2;
 
-            // From ftdi.h
-            /**
-             * Reset the port.
-             */
-            private static int SIO_RESET_REQUEST = 0;
-
-            /**
-             * Set the modem control register.
-             */
-            private static int SIO_MODEM_CTRL_REQUEST = 1;
-
-            /**
-             * Set flow control register.
-             */
-            private static int SIO_SET_FLOW_CTRL_REQUEST = 2;
-
-            /**
-             * Set baud rate.
-             */
-            private static int SIO_SET_BAUD_RATE_REQUEST = 3;
-
-            /**
-             * Set the data characteristics of the port.
-             */
-            private static int SIO_SET_DATA_REQUEST = 4;
-
-            private static int SIO_RESET_SIO = 0;
-            private static int SIO_RESET_PURGE_RX = 1;
-            private static int SIO_RESET_PURGE_TX = 2;
-
-            public static int FTDI_DEVICE_OUT_REQTYPE =
-                UsbConstants.UsbTypeVendor | USB_RECIP_DEVICE | USB_ENDPOINT_OUT;
-
-            public static int FTDI_DEVICE_IN_REQTYPE =
-                UsbConstants.UsbTypeVendor | USB_RECIP_DEVICE | USB_ENDPOINT_IN;
-
-            /**
-             *  RTS and DTR values obtained from FreeBSD FTDI driver
-             *  https://github.com/freebsd/freebsd/blob/70b396ca9c54a94c3fad73c3ceb0a76dffbde635/sys/dev/usb/serial/uftdi_reg.h
-             */
-            private static int FTDI_SIO_SET_DTR_MASK = 0x1;
-            private static int FTDI_SIO_SET_DTR_HIGH = (1 | (FTDI_SIO_SET_DTR_MASK << 8));
-            private static int FTDI_SIO_SET_DTR_LOW = (0 | (FTDI_SIO_SET_DTR_MASK << 8));
-            private static int FTDI_SIO_SET_RTS_MASK = 0x2;
-            private static int FTDI_SIO_SET_RTS_HIGH = (2 | (FTDI_SIO_SET_RTS_MASK << 8));
-            private static int FTDI_SIO_SET_RTS_LOW = (0 | (FTDI_SIO_SET_RTS_MASK << 8));
-            private bool rts;
-
-            /**
-             * Length of the modem status header, transmitted with every read.
-             */
-            private static int MODEM_STATUS_HEADER_LENGTH = 2;
-
-            private String TAG = typeof (FtdiSerialDriver).Name;
-
-            private DeviceType mType;
-
-            private int mInterface = 0; /* INTERFACE_ANY */
-
-            private int mMaxPacketSize = 64; // TODO(mikey): detect
-
-            /**
-             * Due to http://b.android.com/28023 , we cannot use UsbRequest async reads
-             * since it gives no indication of number of bytes read. Set this to
-             * {@code true} on platforms where it is fixed.
-             */
-            private static Boolean ENABLE_ASYNC_READS = false;
+            private Boolean baudRateWithPort = false;
+            private Boolean dtr = false;
+            private Boolean rts = false;
+            private int breakConfig = 0;
 
             private IUsbSerialDriver Driver;
+
+
+            private String TAG = typeof (FtdiSerialDriver).Name;
 
 
             public FtdiSerialPort(UsbDevice device, int portNumber) : base(device, portNumber)
@@ -165,47 +140,14 @@ namespace Hoho.Android.UsbSerial.Driver
                 return Driver;
             }
 
-            /**
-             * Filter FTDI status bytes from buffer
-             * @param src The source buffer (which contains status bytes)
-             * @param dest The destination buffer to write the status bytes into (can be src)
-             * @param totalBytesRead Number of bytes read to src
-             * @param maxPacketSize The USB endpoint max packet size
-             * @return The number of payload bytes
-             */
-
-            private int FilterStatusBytes(byte[] src, byte[] dest, int totalBytesRead, int maxPacketSize)
-            {
-                int packetsCount = totalBytesRead/maxPacketSize + (totalBytesRead%maxPacketSize == 0 ? 0 : 1);
-                for (int packetIdx = 0; packetIdx < packetsCount; ++packetIdx)
-                {
-                    int count = (packetIdx == (packetsCount - 1))
-                        ? (totalBytesRead%maxPacketSize) - MODEM_STATUS_HEADER_LENGTH
-                        : maxPacketSize - MODEM_STATUS_HEADER_LENGTH;
-                    if (count > 0)
-                    {
-                        Buffer.BlockCopy(src,
-                            packetIdx*maxPacketSize + MODEM_STATUS_HEADER_LENGTH,
-                            dest,
-                            packetIdx*(maxPacketSize - MODEM_STATUS_HEADER_LENGTH),
-                            count);
-                    }
-                }
-
-                return totalBytesRead - (packetsCount*2);
-            }
-
             public void Reset()
             {
-                int result = mConnection.ControlTransfer((UsbAddressing) FTDI_DEVICE_OUT_REQTYPE, SIO_RESET_REQUEST,
-                    SIO_RESET_SIO, 0 /* index */, null, 0, USB_WRITE_TIMEOUT_MILLIS);
+                int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, RESET_REQUEST,
+                    RESET_ALL, mPortNumber + 1, null, 0, USB_WRITE_TIMEOUT_MILLIS);
                 if (result != 0)
                 {
                     throw new IOException("Reset failed: result=" + result);
                 }
-
-                // TODO(mikey): autodetect.
-                mType = DeviceType.TYPE_R;
             }
 
             public override void Open(UsbDeviceConnection connection)
@@ -259,63 +201,38 @@ namespace Hoho.Android.UsbSerial.Driver
             {
                 UsbEndpoint endpoint = mDevice.GetInterface(0).GetEndpoint(0);
 
-                if (ENABLE_ASYNC_READS)
-                {
-                    int readAmt;
-                    lock(mReadBufferLock) {
-                        // mReadBuffer is only used for maximum read size.
-                        readAmt = Math.Min(dest.Length, mReadBuffer.Length);
-                    }
+                int totalBytesRead;
 
-                    UsbRequest request = new UsbRequest();
-                    request.Initialize(mConnection, endpoint);
+                lock(mReadBufferLock) {
+                    int readAmt = Math.Min(dest.Length, mReadBuffer.Length);
 
-                    Java.Nio.ByteBuffer buf = Java.Nio.ByteBuffer.Wrap(dest);
-                    if (!request.Queue(buf, readAmt))
+                    // todo: replace with async call
+                    totalBytesRead = mConnection.BulkTransfer(endpoint, mReadBuffer,
+                            readAmt, timeoutMillis);
+
+                    if (totalBytesRead < READ_HEADER_LENGTH)
                     {
-                        throw new IOException("Error queueing request.");
+                        throw new IOException("Expected at least " + READ_HEADER_LENGTH + " bytes");
                     }
 
-                    UsbRequest response = mConnection.RequestWait();
-                    if (response == null)
-                    {
-                        throw new IOException("Null response");
-                    }
-
-                    int payloadBytesRead = buf.Position() - MODEM_STATUS_HEADER_LENGTH;
-                    if (payloadBytesRead > 0)
-                    {
-                        // CJM: This differs from the Java implementation.  The dest buffer was
-                        // not getting the data back.
-                        System.Buffer.BlockCopy(buf.ToByteArray(), 0, dest, 0, dest.Length);
-
-                        Log.Debug(TAG, HexDump.DumpHexString(dest, 0, Math.Min(32, dest.Length)));
-                        return payloadBytesRead;
-                    }
-                    else
-                    {
-                        return 0;
-                    }
+                    return ReadFilter(dest, totalBytesRead, endpoint.MaxPacketSize);
                 }
-                else
+            }
+
+            protected int ReadFilter(byte[] buffer, int totalBytesRead, int maxPacketSize)
+            {
+                int destPos = 0;
+
+                for (int srcPos = 0; srcPos < totalBytesRead; srcPos += maxPacketSize)
                 {
-                    int totalBytesRead;
+                    int length = Math.Min(srcPos + maxPacketSize, totalBytesRead) - (srcPos + READ_HEADER_LENGTH);
+                    if (length < 0)
+                        throw new IOException("Expected at least " + READ_HEADER_LENGTH + " bytes");
 
-                    lock(mReadBufferLock) {
-                        int readAmt = Math.Min(dest.Length, mReadBuffer.Length);
-
-                        // todo: replace with async call
-                        totalBytesRead = mConnection.BulkTransfer(endpoint, mReadBuffer,
-                                readAmt, timeoutMillis);
-
-                        if (totalBytesRead < MODEM_STATUS_HEADER_LENGTH)
-                        {
-                            throw new IOException("Expected at least " + MODEM_STATUS_HEADER_LENGTH + " bytes");
-                        }
-
-                        return FilterStatusBytes(mReadBuffer, dest, totalBytesRead, endpoint.MaxPacketSize);
-                    }
+                    Buffer.BlockCopy(buffer, srcPos + READ_HEADER_LENGTH, buffer, destPos, length);
+                    destPos += length;
                 }
+                return destPos;
             }
 
             public override int Write(byte[] src, int timeoutMillis)
@@ -328,7 +245,8 @@ namespace Hoho.Android.UsbSerial.Driver
                     int writeLength;
                     int amtWritten;
 
-                    lock(mWriteBufferLock) {
+                    lock (mWriteBufferLock)
+                    {
                         byte[] writeBuffer;
 
                         writeLength = Math.Min(src.Length - offset, mWriteBuffer.Length);
@@ -359,44 +277,110 @@ namespace Hoho.Android.UsbSerial.Driver
                 return offset;
             }
 
+
             private int SetBaudRate(int baudRate)
             {
-                long[] vals = ConvertBaudrate(baudRate);
-                long actualBaudrate = vals[0];
-                long index = vals[1];
-                long value = vals[2];
-                int result = mConnection.ControlTransfer((UsbAddressing)FTDI_DEVICE_OUT_REQTYPE,
-                        SIO_SET_BAUD_RATE_REQUEST, (int)value, (int)index,
-                        null, 0, USB_WRITE_TIMEOUT_MILLIS);
+                int divisor, subdivisor, effectiveBaudRate;
+
+                if (baudRate > 3500000)
+                {
+                    throw new UnsupportedOperationException("Baud rate to high");
+                }
+                else if (baudRate >= 2500000)
+                {
+                    divisor = 0;
+                    subdivisor = 0;
+                    effectiveBaudRate = 3000000;
+                }
+                else if (baudRate >= 1750000)
+                {
+                    divisor = 1;
+                    subdivisor = 0;
+                    effectiveBaudRate = 2000000;
+                }
+                else
+                {
+                    divisor = (24000000 << 1) / baudRate;
+                    divisor = (divisor + 1) >> 1; // round
+                    subdivisor = divisor & 0x07;
+                    divisor >>= 3;
+                    if (divisor > 0x3fff) // exceeds bit 13 at 183 baud
+                        throw new UnsupportedOperationException("Baud rate to low");
+                    effectiveBaudRate = (24000000 << 1) / ((divisor << 3) + subdivisor);
+                    effectiveBaudRate = (effectiveBaudRate + 1) >> 1;
+                }
+                double baudRateError = Math.Abs(1.0 - (effectiveBaudRate / (double)baudRate));
+                if (baudRateError >= 0.031) // can happen only > 1.5Mbaud
+                    throw new UnsupportedOperationException(String.Format("Baud rate deviation %.1f%% is higher than allowed 3%%", baudRateError * 100));
+                int value = divisor;
+                int index = 0;
+                switch (subdivisor)
+                {
+                    case 0: break; // 16,15,14 = 000 - sub-integer divisor = 0
+                    case 4: value |= 0x4000; break; // 16,15,14 = 001 - sub-integer divisor = 0.5
+                    case 2: value |= 0x8000; break; // 16,15,14 = 010 - sub-integer divisor = 0.25
+                    case 1: value |= 0xc000; break; // 16,15,14 = 011 - sub-integer divisor = 0.125
+                    case 3: value |= 0x0000; index |= 1; break; // 16,15,14 = 100 - sub-integer divisor = 0.375
+                    case 5: value |= 0x4000; index |= 1; break; // 16,15,14 = 101 - sub-integer divisor = 0.625
+                    case 6: value |= 0x8000; index |= 1; break; // 16,15,14 = 110 - sub-integer divisor = 0.75
+                    case 7: value |= 0xc000; index |= 1; break; // 16,15,14 = 111 - sub-integer divisor = 0.875
+                }
+                if (baudRateWithPort)
+                {
+                    index <<= 8;
+                    index |= mPortNumber + 1;
+                }
+                int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, SET_BAUD_RATE_REQUEST,
+                        value, index, null, 0, USB_WRITE_TIMEOUT_MILLIS);
+
                 if (result != 0)
                 {
                     throw new IOException("Setting baudrate failed: result=" + result);
                 }
-                return (int)actualBaudrate;
+
+                return effectiveBaudRate;
             }
+
 
             public override void SetParameters(int baudRate, int dataBits, StopBits stopBits, Parity parity)
             {
+                if (baudRate <= 0)
+                {
+                    throw new IllegalArgumentException("Invalid baud rate: " + baudRate);
+                }
+
                 SetBaudRate(baudRate);
 
                 int config = dataBits;
 
+                switch (dataBits)
+                {
+                    case DATABITS_5:
+                    case DATABITS_6:
+                        throw new UnsupportedOperationException("Unsupported data bits: " + dataBits);
+                    case DATABITS_7:
+                    case DATABITS_8:
+                        config |= dataBits;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid data bits: " + dataBits);
+                }
+
                 switch (parity)
                 {
                     case Parity.None:
-                        config |= (0x00 << 8);
                         break;
                     case Parity.Odd:
-                        config |= (0x01 << 8);
+                        config |= 0x100;
                         break;
                     case Parity.Even:
-                        config |= (0x02 << 8);
+                        config |= 0x200;
                         break;
                     case Parity.Mark:
-                        config |= (0x03 << 8);
+                        config |= 0x300;
                         break;
                     case Parity.Space:
-                        config |= (0x04 << 8);
+                        config |= 0x400;
                         break;
                     default:
                         throw new IllegalArgumentException("Unknown parity value: " + parity);
@@ -405,163 +389,71 @@ namespace Hoho.Android.UsbSerial.Driver
                 switch (stopBits)
                 {
                     case StopBits.One:
-                        config |= (0x00 << 11);
                         break;
                     case StopBits.OnePointFive:
-                        config |= (0x01 << 11);
-                        break;
+                        throw new UnsupportedOperationException("Unsupported stop bits: 1.5");
                     case StopBits.Two:
-                        config |= (0x02 << 11);
+                        config |= 0x1000;
                         break;
                     default:
                         throw new IllegalArgumentException("Unknown stopBits value: " + stopBits);
                 }
 
-                int result = mConnection.ControlTransfer((UsbAddressing)FTDI_DEVICE_OUT_REQTYPE,
-                        SIO_SET_DATA_REQUEST, config, 0 /* index */,
-                        null, 0, USB_WRITE_TIMEOUT_MILLIS);
+                int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, SET_DATA_REQUEST,
+                        config, mPortNumber + 1, null, 0, USB_WRITE_TIMEOUT_MILLIS);
 
                 if (result != 0)
                 {
                     throw new IOException("Setting parameters failed: result=" + result);
                 }
+                breakConfig = config;
             }
 
-            private long[] ConvertBaudrate(int baudrate)
+            private int GetStatus()
             {
-                // TODO(mikey): Braindead transcription of libfti method.  Clean up,
-                // using more idiomatic Java where possible.
-                int divisor = 24000000 / baudrate;
-                int bestDivisor = 0;
-                int bestBaud = 0;
-                int bestBaudDiff = 0;
-                int[] fracCode = {0, 3, 2, 4, 1, 5, 6, 7};
-
-                for (int i = 0; i < 2; i++)
-                {
-                    int tryDivisor = divisor + i;
-                    int baudEstimate;
-                    int baudDiff;
-
-                    if (tryDivisor <= 8)
-                    {
-                        // Round up to minimum supported divisor
-                        tryDivisor = 8;
-                    }
-                    else if (mType != DeviceType.TYPE_AM && tryDivisor < 12)
-                    {
-                        // BM doesn't support divisors 9 through 11 inclusive
-                        tryDivisor = 12;
-                    }
-                    else if (divisor < 16)
-                    {
-                        // AM doesn't support divisors 9 through 15 inclusive
-                        tryDivisor = 16;
-                    }
-                    else
-                    {
-                        if (mType == DeviceType.TYPE_AM)
-                        {
-                            // TODO
-                        }
-                        else
-                        {
-                            if (tryDivisor > 0x1FFFF)
-                            {
-                                // Round down to maximum supported divisor value (for
-                                // BM)
-                                tryDivisor = 0x1FFFF;
-                            }
-                        }
-                    }
-
-                    // Get estimated baud rate (to nearest integer)
-                    baudEstimate = (24000000 + (tryDivisor / 2)) / tryDivisor;
-
-                    // Get absolute difference from requested baud rate
-                    if (baudEstimate < baudrate)
-                    {
-                        baudDiff = baudrate - baudEstimate;
-                    }
-                    else
-                    {
-                        baudDiff = baudEstimate - baudrate;
-                    }
-
-                    if (i == 0 || baudDiff < bestBaudDiff)
-                    {
-                        // Closest to requested baud rate so far
-                        bestDivisor = tryDivisor;
-                        bestBaud = baudEstimate;
-                        bestBaudDiff = baudDiff;
-                        if (baudDiff == 0)
-                        {
-                            // Spot on! No point trying
-                            break;
-                        }
-                    }
+                byte[] data = new byte[2];
+                int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_DEVICE_TO_HOST, GET_MODEM_STATUS_REQUEST,
+                        0, mPortNumber + 1, data, data.Length, USB_WRITE_TIMEOUT_MILLIS);
+                if (result != 2) {
+                    throw new IOException("Get modem status failed: result=" + result);
                 }
-
-                // Encode the best divisor value
-                long encodedDivisor = (bestDivisor >> 3) | (fracCode[bestDivisor & 7] << 14);
-                // Deal with special cases for encoded value
-                if (encodedDivisor == 1)
-                {
-                    encodedDivisor = 0; // 3000000 baud
-                }
-                else if (encodedDivisor == 0x4001)
-                {
-                    encodedDivisor = 1; // 2000000 baud (BM only)
-                }
-
-                // Split into "value" and "index" values
-                long value = encodedDivisor & 0xFFFF;
-                long index;
-                if (mType == DeviceType.TYPE_2232C || mType == DeviceType.TYPE_2232H
-                        || mType == DeviceType.TYPE_4232H)
-                {
-                    index = (encodedDivisor >> 8) & 0xffff;
-                    index &= 0xFF00;
-                    index |= 0 /* TODO mIndex */;
-                }
-                else
-                {
-                    index = (encodedDivisor >> 16) & 0xffff;
-                }
-
-                // Return the nearest baud rate
-                return new long[] {
-                    bestBaud, index, value
-                };
+                return data[0];
             }
 
             public override Boolean GetCD()
             {
-                return false;
+                return (GetStatus() & MODEM_STATUS_CD) != 0;
             }
 
             public override Boolean GetCTS()
             {
-                return false;
+                return (GetStatus() & MODEM_STATUS_CTS) != 0;
             }
 
             public override Boolean GetDSR()
             {
-                return false;
+                return (GetStatus() & MODEM_STATUS_DSR) != 0;
             }
 
             public override Boolean GetDTR()
             {
-                return false;
+                return dtr;
             }
 
             public override void SetDTR(Boolean value)
             {
+                int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, MODEM_CONTROL_REQUEST,
+                                    value ? MODEM_CONTROL_DTR_ENABLE : MODEM_CONTROL_DTR_DISABLE, mPortNumber + 1, null, 0, USB_WRITE_TIMEOUT_MILLIS);
+                if (result != 0)
+                {
+                    throw new IOException("Set DTR failed: result=" + result);
+                }
+                dtr = value;
             }
 
             public override Boolean GetRI()
             {
-                return false;
+                return (GetStatus() & MODEM_STATUS_RI) != 0;
             }
 
             public override Boolean GetRTS()
@@ -571,50 +463,36 @@ namespace Hoho.Android.UsbSerial.Driver
 
             public override void SetRTS(Boolean value)
             {
-                if (value)
+                int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, MODEM_CONTROL_REQUEST,
+                        value ? MODEM_CONTROL_RTS_ENABLE : MODEM_CONTROL_RTS_DISABLE, mPortNumber + 1, null, 0, USB_WRITE_TIMEOUT_MILLIS);
+                if (result != 0)
                 {
-                    int result = mConnection.ControlTransfer((UsbAddressing)FTDI_DEVICE_OUT_REQTYPE,
-                                                             SIO_MODEM_CTRL_REQUEST,
-                                                             FTDI_SIO_SET_RTS_HIGH,
-                                                             0 /* index */,
-                                                             null,
-                                                             0,
-                                                             USB_WRITE_TIMEOUT_MILLIS);
-                }
-                else
-                {
-                    int result = mConnection.ControlTransfer((UsbAddressing)FTDI_DEVICE_OUT_REQTYPE,
-                                                             SIO_MODEM_CTRL_REQUEST,
-                                                             FTDI_SIO_SET_RTS_LOW,
-                                                             0 /* index */,
-                                                             null,
-                                                             0,
-                                                             USB_WRITE_TIMEOUT_MILLIS);
+                    throw new IOException("Set DTR failed: result=" + result);
                 }
                 rts = value;
             }
 
             public override Boolean PurgeHwBuffers(Boolean purgeReadBuffers, Boolean purgeWriteBuffers)
             {
+                if (purgeWriteBuffers)
+                {
+                    int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, RESET_REQUEST,
+                            RESET_PURGE_RX, mPortNumber + 1, null, 0, USB_WRITE_TIMEOUT_MILLIS);
+                    if (result != 0)
+                    {
+                        throw new IOException("Flushing RX failed: result=" + result);
+                    }
+                }
                 if (purgeReadBuffers)
                 {
-                    int result = mConnection.ControlTransfer((UsbAddressing)FTDI_DEVICE_OUT_REQTYPE, SIO_RESET_REQUEST,
-                            SIO_RESET_PURGE_RX, 0 /* index */, null, 0, USB_WRITE_TIMEOUT_MILLIS);
+                    int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, RESET_REQUEST,
+                            RESET_PURGE_RX, mPortNumber + 1, null, 0, USB_WRITE_TIMEOUT_MILLIS);
                     if (result != 0)
                     {
                         throw new IOException("Flushing RX failed: result=" + result);
                     }
                 }
 
-                if (purgeWriteBuffers)
-                {
-                    int result = mConnection.ControlTransfer((UsbAddressing)FTDI_DEVICE_OUT_REQTYPE, SIO_RESET_REQUEST,
-                            SIO_RESET_PURGE_TX, 0 /* index */, null, 0, USB_WRITE_TIMEOUT_MILLIS);
-                    if (result != 0)
-                    {
-                        throw new IOException("Flushing RX failed: result=" + result);
-                    }
-                }
                 return true;
             }
         }
@@ -627,7 +505,10 @@ namespace Hoho.Android.UsbSerial.Driver
                     UsbId.VENDOR_FTDI, new int[]
                     {
                         UsbId.FTDI_FT232R,
-                        UsbId.FTDI_FT231X
+                        UsbId.FTDI_FT232H,
+                        UsbId.FTDI_FT2232H,
+                        UsbId.FTDI_FT4232H,
+                        UsbId.FTDI_FT231X,  // same ID for FT230X, FT231X, FT234XD
                     }
                 }
             };

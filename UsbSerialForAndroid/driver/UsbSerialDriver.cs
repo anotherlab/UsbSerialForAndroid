@@ -50,7 +50,7 @@ namespace Hoho.Android.UsbSerial.Driver
             return mDevice;
         }
 
-        public List<UsbSerialPort> GetPorts()
+        public virtual List<UsbSerialPort> GetPorts()
         {
             return new List<UsbSerialPort> { mPort };
         }

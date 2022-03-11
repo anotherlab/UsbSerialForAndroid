@@ -34,7 +34,11 @@ namespace Hoho.Android.UsbSerial.Driver
     {
         public static readonly int VENDOR_FTDI = 0x0403;
         public static readonly int FTDI_FT232R = 0x6001;
-        public static readonly int FTDI_FT231X = 0x6015;
+        public static readonly int FTDI_FT2232H = 0x6010;
+        public static readonly int FTDI_FT4232H = 0x6011;
+        public static readonly int FTDI_FT232H = 0x6014;
+        public static readonly int FTDI_FT231X = 0x6015; // same ID for FT230X, FT231X, FT234XD
+
 
         public static readonly int VENDOR_ATMEL = 0x03EB;
         public static readonly int ATMEL_LUFA_CDC_DEMO_APP = 0x2044;
@@ -65,9 +69,16 @@ namespace Hoho.Android.UsbSerial.Driver
 
         public static readonly int VENDOR_PROLIFIC = 0x067b;
         public static readonly int PROLIFIC_PL2303 = 0x2303;
+        public static readonly int PROLIFIC_PL2303GC = 0x23a3; // device type HXN
+        public static readonly int PROLIFIC_PL2303GB = 0x23b3; // "
+        public static readonly int PROLIFIC_PL2303GT = 0x23c3; // "
+        public static readonly int PROLIFIC_PL2303GL = 0x23d3; // "
+        public static readonly int PROLIFIC_PL2303GE = 0x23e3; // "
+        public static readonly int PROLIFIC_PL2303GS = 0x23f3; // "
 
         public static readonly int VENDOR_QINHENG = 0x1a86;
         public static readonly int QINHENG_HL340 = 0x7523;
+        public static readonly int QINHENG_CH341A = 0x5523;
 
         public static readonly int VENDOR_ELATEC = 0x09D8;
         public static readonly int ELATEC_TWN3_KEYBOARD = 0x0310;    // Not needed
@@ -77,8 +88,16 @@ namespace Hoho.Android.UsbSerial.Driver
         public static readonly int ELATEC_TWN4_CDC = 0x0420;
         public static readonly int ELATEC_TWN4_SC_READER = 0x0428;   // Uses CCID protocol, not serial
 
-		public static readonly int VENDOR_STM = 0x0483;
+        // at www.linux-usb.org/usb.ids listed for NXP/LPC1768, but all processors supported by ARM mbed DAPLink firmware report these ids
+        public static readonly int VENDOR_ARM = 0x0d28;
+        public static readonly int ARM_MBED = 0x0204;
+
+        public static readonly int VENDOR_STM = 0x0483;
 		public static readonly int STM32_STLINK = 0x374B;
 		public static readonly int STM32_VCOM = 0x5740;
+
+        public static readonly int VENDOR_RASPBERRY_PI = 0x2e8a;
+        public static readonly int RASPBERRY_PI_PICO_MICROPYTHON = 0x0005;
+
     }
 }

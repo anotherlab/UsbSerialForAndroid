@@ -23,7 +23,7 @@ namespace Hoho.Android.UsbSerial.Driver
 {
     public class ProlificSerialDriver : UsbSerialDriver
     {
-        private readonly string TAG = typeof (ProlificSerialDriver).Name;
+        private readonly string TAG = typeof(ProlificSerialDriver).Name;
 
         public ProlificSerialDriver(UsbDevice device)
         {
@@ -38,7 +38,14 @@ namespace Hoho.Android.UsbSerial.Driver
                 {
                     UsbId.VENDOR_PROLIFIC, new int[]
                     {
-                        UsbId.VENDOR_PROLIFIC
+                        UsbId.PROLIFIC_PL2303,
+                        UsbId.PROLIFIC_PL2303GC,
+                        UsbId.PROLIFIC_PL2303GB,
+                        UsbId.PROLIFIC_PL2303GT,
+                        UsbId.PROLIFIC_PL2303GL,
+                        UsbId.PROLIFIC_PL2303GE,
+                        UsbId.PROLIFIC_PL2303GS
+
                     }
                 }
             };
@@ -126,7 +133,7 @@ namespace Hoho.Android.UsbSerial.Driver
                 int value, int index, int length)
             {
                 byte[] buffer = new byte[length];
-                int result = mConnection.ControlTransfer((UsbAddressing) requestType, request, value,
+                int result = mConnection.ControlTransfer((UsbAddressing)requestType, request, value,
                     index, buffer, length, USB_READ_TIMEOUT_MILLIS);
                 if (result != length)
                 {
@@ -139,7 +146,7 @@ namespace Hoho.Android.UsbSerial.Driver
                 int value, int index, byte[] data)
             {
                 int length = data?.Length ?? 0;
-                int result = mConnection.ControlTransfer((UsbAddressing) requestType, request, value,
+                int result = mConnection.ControlTransfer((UsbAddressing)requestType, request, value,
                     index, data, length, USB_WRITE_TIMEOUT_MILLIS);
                 if (result != length)
                 {
@@ -303,21 +310,21 @@ namespace Hoho.Android.UsbSerial.Driver
 
                         switch (currentEndpoint.Address)
                         {
-                            case (UsbAddressing) READ_ENDPOINT:
+                            case (UsbAddressing)READ_ENDPOINT:
                                 mReadEndpoint = currentEndpoint;
                                 break;
 
-                            case (UsbAddressing) WRITE_ENDPOINT:
+                            case (UsbAddressing)WRITE_ENDPOINT:
                                 mWriteEndpoint = currentEndpoint;
                                 break;
 
-                            case (UsbAddressing) INTERRUPT_ENDPOINT:
+                            case (UsbAddressing)INTERRUPT_ENDPOINT:
                                 mInterruptEndpoint = currentEndpoint;
                                 break;
                         }
                     }
 
-                    if (mDevice.DeviceClass == (UsbClass) 0x02)
+                    if (mDevice.DeviceClass == (UsbClass)0x02)
                     {
                         mDeviceType = DEVICE_TYPE_0;
                     }
@@ -338,7 +345,7 @@ namespace Hoho.Android.UsbSerial.Driver
                                 mDeviceType = DEVICE_TYPE_HX;
                             }
                             else if ((mDevice.DeviceClass == 0x00)
-                                     || (mDevice.DeviceClass == (UsbClass) 0xff))
+                                     || (mDevice.DeviceClass == (UsbClass)0xff))
                             {
                                 mDeviceType = DEVICE_TYPE_1;
                             }
@@ -484,10 +491,10 @@ namespace Hoho.Android.UsbSerial.Driver
 
                 byte[] lineRequestData = new byte[7];
 
-                lineRequestData[0] = (byte) (baudRate & 0xff);
-                lineRequestData[1] = (byte) ((baudRate >> 8) & 0xff);
-                lineRequestData[2] = (byte) ((baudRate >> 16) & 0xff);
-                lineRequestData[3] = (byte) ((baudRate >> 24) & 0xff);
+                lineRequestData[0] = (byte)(baudRate & 0xff);
+                lineRequestData[1] = (byte)((baudRate >> 8) & 0xff);
+                lineRequestData[2] = (byte)((baudRate >> 16) & 0xff);
+                lineRequestData[3] = (byte)((baudRate >> 24) & 0xff);
 
                 switch (stopBits)
                 {
@@ -533,7 +540,7 @@ namespace Hoho.Android.UsbSerial.Driver
                         throw new IllegalArgumentException("Unknown parity value: " + parity);
                 }
 
-                lineRequestData[6] = (byte) dataBits;
+                lineRequestData[6] = (byte)dataBits;
 
                 CtrlOut(SET_LINE_REQUEST, 0, 0, lineRequestData);
 

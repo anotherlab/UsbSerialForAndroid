@@ -17,6 +17,12 @@
 
   <!-- 0x067B / 0x2303: Prolific PL2303 -->
   <usb-device vendor-id="1659" product-id="8963" />
+  <usb-device vendor-id="1659" product-id="9123" />
+  <usb-device vendor-id="1659" product-id="9139" />
+  <usb-device vendor-id="1659" product-id="9155" />
+  <usb-device vendor-id="1659" product-id="9171" />
+  <usb-device vendor-id="1659" product-id="9187" />
+  <usb-device vendor-id="1659" product-id="9203" />
 
   <!-- 0x1b4f / 0x0008: IOIO OTG -->
   <usb-device vendor-id="6991" product-id="8" />

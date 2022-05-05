@@ -59,7 +59,7 @@ namespace Hoho.Android.UsbSerial.Driver
 
             for (int port = 0; port < device.InterfaceCount; port++)
             {
-                mPorts.Add(new FtdiSerialPort(mDevice, port));
+                mPorts.Add(new FtdiSerialPort(mDevice, port, this));
             }
         }
 

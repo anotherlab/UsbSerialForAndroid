@@ -37,6 +37,16 @@ namespace Hoho.Android.UsbSerial.Driver
             mPort = new CdcAcmSerialPort(device, 0, this, enableAsyncReads);
         }
 
+        // Additional constructor for ProbeDevice called by Reflection
+        // Note that this defaults to enableAsyncReads = false as
+        // there is no support for passing additional arguments from ProbeDevice
+        public CdcAcmSerialDriver(UsbDevice device)
+        {
+            mDevice = device;
+            bool enableAsyncReads = false;  // For clarity of understanding
+            mPort = new CdcAcmSerialPort(device, 0, this, enableAsyncReads);
+        }
+
         class CdcAcmSerialPort : CommonUsbSerialPort
         {
             private bool mEnableAsyncReads;

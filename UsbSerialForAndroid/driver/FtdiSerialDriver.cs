@@ -59,7 +59,7 @@ namespace Hoho.Android.UsbSerial.Driver
 
             for (int port = 0; port < device.InterfaceCount; port++)
             {
-                mPorts.Add(new FtdiSerialPort(mDevice, port));
+                mPorts.Add(new FtdiSerialPort(mDevice, port, this));
             }
         }
 
@@ -212,7 +212,7 @@ namespace Hoho.Android.UsbSerial.Driver
                     if (length < 0)
                         throw new IOException("Expected at least " + READ_HEADER_LENGTH + " bytes");
 
-                    Buffer.BlockCopy(buffer, srcPos + READ_HEADER_LENGTH, buffer, destPos, length);
+                    Buffer.BlockCopy(mReadBuffer, srcPos + READ_HEADER_LENGTH, buffer, destPos, length);
                     destPos += length;
                 }
                 return destPos;

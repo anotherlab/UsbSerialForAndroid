@@ -23,7 +23,7 @@ namespace Hoho.Android.UsbSerial.Driver
 {
     public class ProlificSerialDriver : UsbSerialDriver
     {
-        private readonly string TAG = typeof (ProlificSerialDriver).Name;
+        private readonly string TAG = typeof(ProlificSerialDriver).Name;
 
         public ProlificSerialDriver(UsbDevice device)
         {
@@ -38,7 +38,14 @@ namespace Hoho.Android.UsbSerial.Driver
                 {
                     UsbId.VENDOR_PROLIFIC, new int[]
                     {
-                        UsbId.VENDOR_PROLIFIC
+                        UsbId.PROLIFIC_PL2303,
+                        UsbId.PROLIFIC_PL2303GC,
+                        UsbId.PROLIFIC_PL2303GB,
+                        UsbId.PROLIFIC_PL2303GT,
+                        UsbId.PROLIFIC_PL2303GL,
+                        UsbId.PROLIFIC_PL2303GE,
+                        UsbId.PROLIFIC_PL2303GS
+
                     }
                 }
             };
@@ -47,36 +54,58 @@ namespace Hoho.Android.UsbSerial.Driver
 
         class ProlificSerialPort : CommonUsbSerialPort
         {
+            protected enum DeviceType { DEVICE_TYPE_01, DEVICE_TYPE_T, DEVICE_TYPE_HX, DEVICE_TYPE_HXN }
+
             private static int USB_READ_TIMEOUT_MILLIS = 1000;
             private static int USB_WRITE_TIMEOUT_MILLIS = 5000;
 
             private static int USB_RECIP_INTERFACE = 0x01;
 
-            private static int PROLIFIC_VENDOR_READ_REQUEST = 0x01;
-            private static int PROLIFIC_VENDOR_WRITE_REQUEST = 0x01;
+            private static int VENDOR_READ_REQUEST = 0x01;
+            private static int VENDOR_WRITE_REQUEST = 0x01;
+            private static int VENDOR_READ_HXN_REQUEST = 0x81;
+            private static int VENDOR_WRITE_HXN_REQUEST = 0x80;
 
-            private static int PROLIFIC_VENDOR_OUT_REQTYPE = UsbSupport.UsbDirOut
-                                                             | UsbConstants.UsbTypeVendor;
-
-            private static int PROLIFIC_VENDOR_IN_REQTYPE = UsbSupport.UsbDirIn
-                                                            | UsbConstants.UsbTypeVendor;
-
-            private static int PROLIFIC_CTRL_OUT_REQTYPE = UsbSupport.UsbDirOut
-                                                           | UsbConstants.UsbTypeClass | USB_RECIP_INTERFACE;
+            private static int VENDOR_OUT_REQTYPE = UsbSupport.UsbDirOut | UsbConstants.UsbTypeVendor;
+            private static int VENDOR_IN_REQTYPE = UsbSupport.UsbDirIn | UsbConstants.UsbTypeVendor;
+            private static int CTRL_OUT_REQTYPE = UsbSupport.UsbDirOut | UsbConstants.UsbTypeClass | USB_RECIP_INTERFACE;
 
             private const int WRITE_ENDPOINT = 0x02;
             private const int READ_ENDPOINT = 0x83;
             private const int INTERRUPT_ENDPOINT = 0x81;
 
+            private static int RESET_HXN_REQUEST = 0x07;
             private static int FLUSH_RX_REQUEST = 0x08;
             private static int FLUSH_TX_REQUEST = 0x09;
 
-            private static int SET_LINE_REQUEST = 0x20;
-            private static int SET_CONTROL_REQUEST = 0x22;
+            private static int SET_LINE_REQUEST = 0x20; // same as CDC SET_LINE_CODING
+            private static int SET_CONTROL_REQUEST = 0x22; // same as CDC SET_CONTROL_LINE_STATE
+            private static int SEND_BREAK_REQUEST = 0x23; // same as CDC SEND_BREAK
+            private static int GET_CONTROL_HXN_REQUEST = 0x80;
+            private static int GET_CONTROL_REQUEST = 0x87;
+            private static int STATUS_NOTIFICATION = 0xa1; // similar to CDC SERIAL_STATE but different length
 
+            /* RESET_HXN_REQUEST */
+            private static int RESET_HXN_RX_PIPE = 1;
+            private static int RESET_HXN_TX_PIPE = 2;
+
+            /* SET_CONTROL_REQUEST */
             private static int CONTROL_DTR = 0x01;
             private static int CONTROL_RTS = 0x02;
 
+            /* GET_CONTROL_REQUEST */
+            private static int GET_CONTROL_FLAG_CD = 0x02;
+            private static int GET_CONTROL_FLAG_DSR = 0x04;
+            private static int GET_CONTROL_FLAG_RI = 0x01;
+            private static int GET_CONTROL_FLAG_CTS = 0x08;
+
+            /* GET_CONTROL_HXN_REQUEST */
+            private static int GET_CONTROL_HXN_FLAG_CD = 0x40;
+            private static int GET_CONTROL_HXN_FLAG_DSR = 0x20;
+            private static int GET_CONTROL_HXN_FLAG_RI = 0x80;
+            private static int GET_CONTROL_HXN_FLAG_CTS = 0x08;
+
+            /* interrupt endpoint read */
             private static int STATUS_FLAG_CD = 0x01;
             private static int STATUS_FLAG_DSR = 0x02;
             private static int STATUS_FLAG_RI = 0x08;
@@ -84,12 +113,8 @@ namespace Hoho.Android.UsbSerial.Driver
 
             private static int STATUS_BUFFER_SIZE = 10;
             private static int STATUS_BYTE_IDX = 8;
-
-            private static int DEVICE_TYPE_HX = 0;
-            private static int DEVICE_TYPE_0 = 1;
-            private static int DEVICE_TYPE_1 = 2;
-
-            private int mDeviceType = DEVICE_TYPE_HX;
+            
+            private DeviceType mDeviceType = DeviceType.DEVICE_TYPE_HX;
 
             private UsbEndpoint mReadEndpoint;
             private UsbEndpoint mWriteEndpoint;
@@ -126,7 +151,7 @@ namespace Hoho.Android.UsbSerial.Driver
                 int value, int index, int length)
             {
                 byte[] buffer = new byte[length];
-                int result = mConnection.ControlTransfer((UsbAddressing) requestType, request, value,
+                int result = mConnection.ControlTransfer((UsbAddressing)requestType, request, value,
                     index, buffer, length, USB_READ_TIMEOUT_MILLIS);
                 if (result != length)
                 {
@@ -139,7 +164,7 @@ namespace Hoho.Android.UsbSerial.Driver
                 int value, int index, byte[] data)
             {
                 int length = data?.Length ?? 0;
-                int result = mConnection.ControlTransfer((UsbAddressing) requestType, request, value,
+                int result = mConnection.ControlTransfer((UsbAddressing)requestType, request, value,
                     index, data, length, USB_WRITE_TIMEOUT_MILLIS);
                 if (result != length)
                 {
@@ -149,14 +174,14 @@ namespace Hoho.Android.UsbSerial.Driver
 
             private byte[] VendorIn(int value, int index, int length)
             {
-                return InControlTransfer(PROLIFIC_VENDOR_IN_REQTYPE,
-                    PROLIFIC_VENDOR_READ_REQUEST, value, index, length);
+                int request = (mDeviceType == DeviceType.DEVICE_TYPE_HXN) ? VENDOR_READ_HXN_REQUEST : VENDOR_READ_REQUEST;
+                return InControlTransfer(VENDOR_IN_REQTYPE, request, value, index, length);
             }
 
             private void VendorOut(int value, int index, byte[] data)
             {
-                OutControlTransfer(PROLIFIC_VENDOR_OUT_REQTYPE,
-                    PROLIFIC_VENDOR_WRITE_REQUEST, value, index, data);
+                int request = (mDeviceType == DeviceType.DEVICE_TYPE_HXN) ? VENDOR_WRITE_HXN_REQUEST : VENDOR_WRITE_REQUEST;
+                OutControlTransfer(VENDOR_OUT_REQTYPE, request, value, index, data);
             }
 
             private void ResetDevice()
@@ -166,12 +191,27 @@ namespace Hoho.Android.UsbSerial.Driver
 
             private void CtrlOut(int request, int value, int index, byte[] data)
             {
-                OutControlTransfer(PROLIFIC_CTRL_OUT_REQTYPE, request, value, index,
-                    data);
+                OutControlTransfer(CTRL_OUT_REQTYPE, request, value, index, data);
+            }
+
+            private Boolean TestHxStatus()
+            {
+                try
+                {
+                    InControlTransfer(VENDOR_IN_REQTYPE, VENDOR_READ_REQUEST, 0x8080, 0, 1);
+                    return true;
+                }
+                catch (IOException ignored)
+                {
+                    return false;
+                }
             }
 
             private void DoBlackMagic()
             {
+                if (mDeviceType == DeviceType.DEVICE_TYPE_HXN)
+                    return;
+
                 VendorIn(0x8484, 0, 1);
                 VendorOut(0x0404, 0, null);
                 VendorIn(0x8484, 0, 1);
@@ -182,7 +222,7 @@ namespace Hoho.Android.UsbSerial.Driver
                 VendorIn(0x8383, 0, 1);
                 VendorOut(0, 1, null);
                 VendorOut(1, 0, null);
-                VendorOut(2, (mDeviceType == DEVICE_TYPE_HX) ? 0x44 : 0x24, null);
+                VendorOut(2, (mDeviceType == DeviceType.DEVICE_TYPE_HX) ? 0x44 : 0x24, null);
             }
 
             private void SetControlLines(int newControlLinesValue)
@@ -230,20 +270,23 @@ namespace Hoho.Android.UsbSerial.Driver
                     {
                         if (mReadStatusThread == null)
                         {
-                            byte[] buffer = new byte[STATUS_BUFFER_SIZE];
-                            int readBytes = mConnection.BulkTransfer(mInterruptEndpoint,
-                                buffer,
-                                STATUS_BUFFER_SIZE,
-                                100);
-                            if (readBytes != STATUS_BUFFER_SIZE)
+                            mStatus = 0;
+                            if (mDeviceType == DeviceType.DEVICE_TYPE_HXN)
                             {
-                                Log.Warn(TAG, "Could not read initial CTS / DSR / CD / RI status");
+                                byte[] data = VendorIn(GET_CONTROL_HXN_REQUEST, 0, 1);
+                                if ((data[0] & GET_CONTROL_HXN_FLAG_CTS) == 0) mStatus |= STATUS_FLAG_CTS;
+                                if ((data[0] & GET_CONTROL_HXN_FLAG_DSR) == 0) mStatus |= STATUS_FLAG_DSR;
+                                if ((data[0] & GET_CONTROL_HXN_FLAG_CD) == 0) mStatus |= STATUS_FLAG_CD;
+                                if ((data[0] & GET_CONTROL_HXN_FLAG_RI) == 0) mStatus |= STATUS_FLAG_RI;
                             }
                             else
                             {
-                                mStatus = buffer[STATUS_BYTE_IDX] & 0xff;
+                                byte[] data = VendorIn(GET_CONTROL_REQUEST, 0, 1);
+                                if ((data[0] & GET_CONTROL_FLAG_CTS) == 0) mStatus |= STATUS_FLAG_CTS;
+                                if ((data[0] & GET_CONTROL_FLAG_DSR) == 0) mStatus |= STATUS_FLAG_DSR;
+                                if ((data[0] & GET_CONTROL_FLAG_CD) == 0) mStatus |= STATUS_FLAG_CD;
+                                if ((data[0] & GET_CONTROL_FLAG_RI) == 0) mStatus |= STATUS_FLAG_RI;
                             }
-
                             ThreadStart mReadStatusThreadDelegate = new ThreadStart(ReadStatusThreadFunction);
 
                             mReadStatusThread = new Thread(mReadStatusThreadDelegate);
@@ -303,66 +346,50 @@ namespace Hoho.Android.UsbSerial.Driver
 
                         switch (currentEndpoint.Address)
                         {
-                            case (UsbAddressing) READ_ENDPOINT:
+                            case (UsbAddressing)READ_ENDPOINT:
                                 mReadEndpoint = currentEndpoint;
                                 break;
 
-                            case (UsbAddressing) WRITE_ENDPOINT:
+                            case (UsbAddressing)WRITE_ENDPOINT:
                                 mWriteEndpoint = currentEndpoint;
                                 break;
 
-                            case (UsbAddressing) INTERRUPT_ENDPOINT:
+                            case (UsbAddressing)INTERRUPT_ENDPOINT:
                                 mInterruptEndpoint = currentEndpoint;
                                 break;
                         }
                     }
 
-                    if (mDevice.DeviceClass == (UsbClass) 0x02)
+                    byte[] rawDescriptors = connection.GetRawDescriptors();
+                    if (rawDescriptors == null || rawDescriptors.Length < 14)
                     {
-                        mDeviceType = DEVICE_TYPE_0;
+                        throw new IOException("Could not get device descriptors");
+                    }
+                    int usbVersion = (rawDescriptors[3] << 8) + rawDescriptors[2];
+                    int deviceVersion = (rawDescriptors[13] << 8) + rawDescriptors[12];
+                    byte maxPacketSize0 = rawDescriptors[7];
+
+                    if (mDevice.DeviceClass == UsbClass.Comm || maxPacketSize0 != 64)
+                    {
+                        mDeviceType = DeviceType.DEVICE_TYPE_01;
+                    }
+                    else if (deviceVersion == 0x300 && usbVersion == 0x200)
+                    {
+                        mDeviceType = DeviceType.DEVICE_TYPE_T; // TA
+                    }
+                    else if (deviceVersion == 0x500)
+                    {
+                        mDeviceType = DeviceType.DEVICE_TYPE_T; // TB
+                    }
+                    else if (usbVersion == 0x200 && !TestHxStatus())
+                    {
+                        mDeviceType = DeviceType.DEVICE_TYPE_HXN;
                     }
                     else
                     {
-                        try
-                        {
-                            //Method getRawDescriptorsMethod
-                            //    = mConnection.getClass().getMethod("getRawDescriptors");
-                            //byte[] rawDescriptors
-                            //    = (byte[])getRawDescriptorsMethod.invoke(mConnection);
-
-                            byte[] rawDescriptors = mConnection.GetRawDescriptors();
-
-                            byte maxPacketSize0 = rawDescriptors[7];
-                            if (maxPacketSize0 == 64)
-                            {
-                                mDeviceType = DEVICE_TYPE_HX;
-                            }
-                            else if ((mDevice.DeviceClass == 0x00)
-                                     || (mDevice.DeviceClass == (UsbClass) 0xff))
-                            {
-                                mDeviceType = DEVICE_TYPE_1;
-                            }
-                            else
-                            {
-                                Log.Warn(TAG, "Could not detect PL2303 subtype, "
-                                              + "Assuming that it is a HX device");
-                                mDeviceType = DEVICE_TYPE_HX;
-                            }
-                        }
-                        catch (NoSuchMethodException e)
-                        {
-                            Log.Warn(TAG, "Method UsbDeviceConnection.getRawDescriptors, "
-                                          + "required for PL2303 subtype detection, not "
-                                          + "available! Assuming that it is a HX device");
-                            mDeviceType = DEVICE_TYPE_HX;
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error(TAG, "An unexpected exception occured while trying "
-                                           + "to detect PL2303 subtype", e);
-                        }
+                        mDeviceType = DeviceType.DEVICE_TYPE_HX;
                     }
-
+                    
                     SetControlLines(mControlLinesValue);
                     ResetDevice();
 
@@ -484,10 +511,10 @@ namespace Hoho.Android.UsbSerial.Driver
 
                 byte[] lineRequestData = new byte[7];
 
-                lineRequestData[0] = (byte) (baudRate & 0xff);
-                lineRequestData[1] = (byte) ((baudRate >> 8) & 0xff);
-                lineRequestData[2] = (byte) ((baudRate >> 16) & 0xff);
-                lineRequestData[3] = (byte) ((baudRate >> 24) & 0xff);
+                lineRequestData[0] = (byte)(baudRate & 0xff);
+                lineRequestData[1] = (byte)((baudRate >> 8) & 0xff);
+                lineRequestData[2] = (byte)((baudRate >> 16) & 0xff);
+                lineRequestData[3] = (byte)((baudRate >> 24) & 0xff);
 
                 switch (stopBits)
                 {
@@ -533,7 +560,7 @@ namespace Hoho.Android.UsbSerial.Driver
                         throw new IllegalArgumentException("Unknown parity value: " + parity);
                 }
 
-                lineRequestData[6] = (byte) dataBits;
+                lineRequestData[6] = (byte)dataBits;
 
                 CtrlOut(SET_LINE_REQUEST, 0, 0, lineRequestData);
 
@@ -612,16 +639,21 @@ namespace Hoho.Android.UsbSerial.Driver
 
             public override Boolean PurgeHwBuffers(Boolean purgeReadBuffers, Boolean purgeWriteBuffers)
             {
-                if (purgeReadBuffers)
+                if (mDeviceType == DeviceType.DEVICE_TYPE_HXN)
                 {
-                    VendorOut(FLUSH_RX_REQUEST, 0, null);
+                    int index = 0;
+                    if (purgeWriteBuffers) index |= RESET_HXN_RX_PIPE;
+                    if (purgeReadBuffers) index |= RESET_HXN_TX_PIPE;
+                    if (index != 0)
+                        VendorOut(RESET_HXN_REQUEST, index, null);
                 }
-
-                if (purgeWriteBuffers)
+                else
                 {
-                    VendorOut(FLUSH_TX_REQUEST, 0, null);
+                    if (purgeWriteBuffers)
+                        VendorOut(FLUSH_RX_REQUEST, 0, null);
+                    if (purgeReadBuffers)
+                        VendorOut(FLUSH_TX_REQUEST, 0, null);
                 }
-
                 return purgeReadBuffers || purgeWriteBuffers;
             }
         }

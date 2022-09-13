@@ -56,6 +56,13 @@ namespace Hoho.Android.UsbSerial.Driver
             private const int FLUSH_READ_CODE = 0x0a;
             private const int FLUSH_WRITE_CODE = 0x05;
 
+            // https://developer.android.com/reference/android/hardware/usb/UsbConstants#USB_DIR_IN
+            private static int REQTYPE_DEVICE_TO_HOST = UsbConstants.UsbTypeVendor | 0;   // UsbConstants.USB_DIR_IN;
+            private static int GET_MODEM_STATUS_REQUEST = 5;
+            private static int MODEM_STATUS_CTS = 0x10;
+            private static int MODEM_STATUS_DSR = 0x20;
+            private static int MODEM_STATUS_RI = 0x40;
+            private static int MODEM_STATUS_CD = 0x80;
             /*
              * SILABSER_IFC_ENABLE_REQUEST_CODE
              */
@@ -303,19 +310,31 @@ namespace Hoho.Android.UsbSerial.Driver
                 SetConfigSingle(SILABSER_SET_LINE_CTL_REQUEST_CODE, configDataBits);
             }
 
+            private int GetStatus()
+            {
+                byte[] data = new byte[2];
+                int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_DEVICE_TO_HOST, GET_MODEM_STATUS_REQUEST,
+                        0, mPortNumber + 1, data, data.Length, USB_WRITE_TIMEOUT_MILLIS);
+                if (result != 2)
+                {
+                    throw new IOException("Get modem status failed: result=" + result);
+                }
+                return data[0];
+            }
+
             public override bool GetCD()
             {
-                return false;
+                return (GetStatus() & MODEM_STATUS_CD) != 0;
             }
 
             public override bool GetCTS()
             {
-                return false;
+                return (GetStatus() & MODEM_STATUS_CTS) != 0;
             }
 
             public override bool GetDSR()
             {
-                return false;
+                return (GetStatus() & MODEM_STATUS_DSR) != 0;
             }
 
             public override bool GetDTR()
@@ -329,7 +348,7 @@ namespace Hoho.Android.UsbSerial.Driver
 
             public override bool GetRI()
             {
-                return false;
+                return (GetStatus() & MODEM_STATUS_RI) != 0;
             }
 
             public override bool GetRTS()

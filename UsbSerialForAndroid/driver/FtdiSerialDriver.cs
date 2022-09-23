@@ -450,7 +450,7 @@ namespace Hoho.Android.UsbSerial.Driver
                         value ? MODEM_CONTROL_RTS_ENABLE : MODEM_CONTROL_RTS_DISABLE, mPortNumber + 1, null, 0, USB_WRITE_TIMEOUT_MILLIS);
                 if (result != 0)
                 {
-                    throw new IOException("Set DTR failed: result=" + result);
+                    throw new IOException("Set RTS failed: result=" + result);
                 }
                 rts = value;
             }

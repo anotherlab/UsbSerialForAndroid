@@ -98,6 +98,8 @@ wiki page for usb-serial-for-android library.
 For other help and discussion, please join the usb-serial-for-android Google Group,
 [usb-serial-for-android](https://groups.google.com/forum/?fromgroups#!forum/usb-serial-for-android).
 
+Pull Requests are welcome, but please include what hardware was used for testing. I do not have the hardware or the bandwidth to test the various chipsets supported by the library.
+
 ## Author, License, and Copyright
 
 This library is licensed under LGPL Version 2.1. Please see LICENSE.txt for the complete license.

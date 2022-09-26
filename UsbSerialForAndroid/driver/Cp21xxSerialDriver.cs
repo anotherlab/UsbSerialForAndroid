@@ -313,7 +313,7 @@ namespace Hoho.Android.UsbSerial.Driver
             {
                 byte[] data = new byte[1];
                 int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_DEVICE_TO_HOST, GET_MODEM_STATUS_REQUEST,
-                        0, mPortNumber, data, data.Length, USB_WRITE_TIMEOUT_MILLIS);
+                        0, 0, data, data.Length, USB_WRITE_TIMEOUT_MILLIS);
                 if (result != 1)
                 {
                     throw new IOException("Get modem status failed: result=" + result);
@@ -338,11 +338,12 @@ namespace Hoho.Android.UsbSerial.Driver
 
             public override bool GetDTR()
             {
-                return true;
+                return (GetStatus() & MCR_DTR) != 0;
             }
 
             public override void SetDTR(bool value)
             {
+                SetConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, (value ? MCR_DTR : 0) | CONTROL_WRITE_DTR);
             }
 
             public override bool GetRI()
@@ -352,11 +353,12 @@ namespace Hoho.Android.UsbSerial.Driver
 
             public override bool GetRTS()
             {
-                return true;
+                return (GetStatus() & MCR_RTS) != 0;
             }
 
             public override void SetRTS(bool value)
             {
+                SetConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, (value ? MCR_RTS : 0) | CONTROL_WRITE_RTS);
             }
 
             public override Boolean PurgeHwBuffers(Boolean purgeReadBuffers, Boolean purgeWriteBuffers)

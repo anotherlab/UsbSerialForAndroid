@@ -57,11 +57,11 @@ namespace Hoho.Android.UsbSerial.Driver
             private const int FLUSH_READ_CODE = 0x0a;
             private const int FLUSH_WRITE_CODE = 0x05;
 
-            private static int GET_MODEM_STATUS_REQUEST = 0x08; // 0x08 Get modem status. 
-            private static int MODEM_STATUS_CTS = 0x10;
-            private static int MODEM_STATUS_DSR = 0x20;
-            private static int MODEM_STATUS_RI = 0x40;
-            private static int MODEM_STATUS_CD = 0x80;
+            private const int GET_MODEM_STATUS_REQUEST = 0x08; // 0x08 Get modem status. 
+            private const int MODEM_STATUS_CTS = 0x10;
+            private const int MODEM_STATUS_DSR = 0x20;
+            private const int MODEM_STATUS_RI = 0x40;
+            private const int MODEM_STATUS_CD = 0x80;
             /*
              * SILABSER_IFC_ENABLE_REQUEST_CODE
              */
@@ -86,7 +86,7 @@ namespace Hoho.Android.UsbSerial.Driver
             private UsbEndpoint mReadEndpoint;
             private UsbEndpoint mWriteEndpoint;
 
-            private IUsbSerialDriver Driver;
+            private new IUsbSerialDriver Driver;
             private string TAG => (Driver as Cp21xxSerialDriver)?.TAG;
 
 
@@ -210,28 +210,16 @@ namespace Hoho.Android.UsbSerial.Driver
             public override int Write(byte[] src, int timeoutMillis)
             {
                 int offset = 0;
+                int writeLength;
+                int amtWritten;
 
                 while (offset < src.Length)
                 {
-                    int writeLength;
-                    int amtWritten;
-
                     lock(mWriteBufferLock) {
-                        byte[] writeBuffer;
 
-                        writeLength = Math.Min(src.Length - offset, mWriteBuffer.Length);
-                        if (offset == 0)
-                        {
-                            writeBuffer = src;
-                        }
-                        else
-                        {
-                            // bulkTransfer does not support offsets, make a copy.
-                            Buffer.BlockCopy(src, offset, mWriteBuffer, 0, writeLength);
-                            writeBuffer = mWriteBuffer;
-                        }
+                        writeLength = src.Length - offset;
 
-                        amtWritten = mConnection.BulkTransfer(mWriteEndpoint, writeBuffer, writeLength,
+                        amtWritten = mConnection.BulkTransfer(mWriteEndpoint, src, offset, writeLength,
                                 timeoutMillis);
                     }
                     if (amtWritten <= 0)
@@ -313,7 +301,7 @@ namespace Hoho.Android.UsbSerial.Driver
             {
                 byte[] data = new byte[1];
                 int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_DEVICE_TO_HOST, GET_MODEM_STATUS_REQUEST,
-                        0, mPortNumber, data, data.Length, USB_WRITE_TIMEOUT_MILLIS);
+                        0, 0, data, data.Length, USB_WRITE_TIMEOUT_MILLIS);
                 if (result != 1)
                 {
                     throw new IOException("Get modem status failed: result=" + result);
@@ -338,11 +326,12 @@ namespace Hoho.Android.UsbSerial.Driver
 
             public override bool GetDTR()
             {
-                return true;
+                return (GetStatus() & MCR_DTR) != 0;
             }
 
             public override void SetDTR(bool value)
             {
+                SetConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, (value ? MCR_DTR : 0) | CONTROL_WRITE_DTR);
             }
 
             public override bool GetRI()
@@ -352,11 +341,12 @@ namespace Hoho.Android.UsbSerial.Driver
 
             public override bool GetRTS()
             {
-                return true;
+                return (GetStatus() & MCR_RTS) != 0;
             }
 
             public override void SetRTS(bool value)
             {
+                SetConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, (value ? MCR_RTS : 0) | CONTROL_WRITE_RTS);
             }
 
             public override Boolean PurgeHwBuffers(Boolean purgeReadBuffers, Boolean purgeWriteBuffers)

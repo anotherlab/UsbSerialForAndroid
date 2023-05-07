@@ -4,4 +4,5 @@
   <string name="refreshing">Refreshing...</string>
   <string name="sleep">Sleep</string>
   <string name="wakeup">Wakeup</string>
+	<string name="sendCaption">hello</string>
 </resources>

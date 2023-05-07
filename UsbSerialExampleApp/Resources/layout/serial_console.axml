@@ -23,6 +23,13 @@
       android:layout_below="@+id/demoTitle"
       android:layout_toRightOf="@+id/sleepButton"
       android:text="@string/wakeup" />
+  <Button
+      android:id="@+id/helloButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_below="@+id/demoTitle"
+      android:layout_toRightOf="@+id/wakeupButton"
+      android:text="@string/sendCaption" />
   <View
       android:id="@+id/separator"
       android:layout_width="match_parent"

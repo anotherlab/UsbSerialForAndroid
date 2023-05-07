@@ -1,6 +1,6 @@
-<Project Sdk="Xamarin.Legacy.Sdk/0.2.0-alpha3">
+<Project Sdk="Xamarin.Legacy.Sdk/0.2.0-alpha4">
   <PropertyGroup>
-    <TargetFrameworks>net6.0-android;monoandroid5.0</TargetFrameworks>
+    <TargetFrameworks>net6.0-android;net7.0-android;monoandroid5.0</TargetFrameworks>
     <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>

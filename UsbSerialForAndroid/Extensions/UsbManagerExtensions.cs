@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Android.Hardware.Usb;
 using Android.App;
 using Android.Content;
+using Android.OS;
 using System.Collections.Generic;
 
 namespace Hoho.Android.UsbSerial.Util
@@ -28,7 +29,15 @@ namespace Hoho.Android.UsbSerial.Util
             var usbPermissionReceiver = new UsbPermissionReceiver(completionSource);
             context.RegisterReceiver(usbPermissionReceiver, new IntentFilter(ACTION_USB_PERMISSION));
 
-            var intent = PendingIntent.GetBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
+            // Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE or FLAG_MUTABLE be specified when creating a PendingIntent.
+#if NET6_0_OR_GREATER
+            PendingIntentFlags pendingIntentFlags = Build.VERSION.SdkInt >= BuildVersionCodes.S ? PendingIntentFlags.Mutable : 0;
+#else
+            PendingIntentFlags pendingIntentFlags = Build.VERSION.SdkInt >= (BuildVersionCodes)31 ? (PendingIntentFlags).33554432 : 0;
+#endif
+
+            var intent = PendingIntent.GetBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), pendingIntentFlags);
+
             manager.RequestPermission(device, intent);
 
             return completionSource.Task;

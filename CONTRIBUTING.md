@@ -26,6 +26,8 @@ If you have a code fix or suggestion, we are only looking at changes submitted a
 
 Bug reports will be closed if no details are included. If you create an issue for an error and only provide a stack trace, it will be closed.
 
+Issues without a response from the original poster will be closed after 6 months.
+
 _If an issue has been closed and you still feel it's relevant, feel free to add a comment!_
 
 ### Languages

@@ -132,7 +132,8 @@ namespace Hoho.Android.UsbSerial.Driver
             Boolean mStopReadStatusThread = false;
             private IOException mReadStatusException = null;
 
-            private IUsbSerialDriver Driver;
+            private new readonly IUsbSerialDriver Driver;
+            
 
             private string TAG => (Driver as ProlificSerialDriver)?.TAG;
 

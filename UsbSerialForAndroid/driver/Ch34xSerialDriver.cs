@@ -59,7 +59,7 @@ namespace Hoho.Android.UsbSerial.Driver
             private UsbEndpoint mReadEndpoint;
             private UsbEndpoint mWriteEndpoint;
 
-            private IUsbSerialDriver Driver;
+            private new readonly IUsbSerialDriver Driver;
             private string TAG => (Driver as Ch34xSerialDriver)?.TAG;
 
             public Ch340SerialPort(UsbDevice device, int portNumber, IUsbSerialDriver driver) : base(device, portNumber)

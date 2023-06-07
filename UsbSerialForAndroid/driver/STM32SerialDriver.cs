@@ -56,7 +56,7 @@ namespace Hoho.Android.UsbSerial.Driver
 			bool mRts = false;
 			bool mDtr = false;
 
-			IUsbSerialDriver Driver;
+			private new readonly IUsbSerialDriver Driver;
 
 			const int USB_WRITE_TIMEOUT_MILLIS = 5000;
 
@@ -141,8 +141,15 @@ namespace Hoho.Android.UsbSerial.Driver
 					try
 					{
 						request.Initialize(mConnection, mReadEndpoint);
-						ByteBuffer buf = ByteBuffer.Wrap(dest);
-						if (!request.Queue(buf, dest.Length))
+
+                        // wrap not work here
+                        // byte[] is a primitive C# value type and not a Java.Lang.Object reference type
+                        // when you do ByteBuffer.Wrap (dest), Java has no reference to the actual C# byte[], Java will instead make a copy of the bytes.
+                        // ByteBuffer buf = ByteBuffer.Wrap(dest);
+
+                        ByteBuffer buf = ByteBuffer.AllocateDirect(dest.Length);
+
+                        if (!request.Queue(buf, buf.Limit()))
 							throw new IOException("Error queuing request");
 
 						UsbRequest response = mConnection.RequestWait();
@@ -151,7 +158,13 @@ namespace Hoho.Android.UsbSerial.Driver
 
 						int nread = buf.Position();
 						if (nread > 0)
-							return nread;
+						{
+                            // set back buffer position to 0
+							buf.Rewind();
+							// copy the bytes back
+                            buf.Get(dest, 0, nread);
+                            return nread;
+						}
 
 						return 0;
 					}
@@ -166,7 +179,7 @@ namespace Hoho.Android.UsbSerial.Driver
 				{
 					int readAmt = Math.Min(dest.Length, mReadBuffer.Length);
 					numBytesRead = mConnection.BulkTransfer(mReadEndpoint, mReadBuffer, readAmt, timeoutMillis);
-					if(numBytesRead < 0)
+					if(numBytesRead <= 0)
 					{
 						// This sucks: we get -1 on timeout, not 0 as preferred.
 						// We *should* use UsbRequest, except it has a bug/api oversight

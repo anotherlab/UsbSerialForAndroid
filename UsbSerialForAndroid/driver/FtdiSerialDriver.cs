@@ -103,7 +103,7 @@ namespace Hoho.Android.UsbSerial.Driver
             private Boolean rts = false;
             private int breakConfig = 0;
 
-            private IUsbSerialDriver Driver;
+            private new readonly IUsbSerialDriver Driver;
 
 
             private String TAG = typeof (FtdiSerialDriver).Name;

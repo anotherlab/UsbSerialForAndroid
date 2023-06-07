@@ -28,7 +28,21 @@ namespace Hoho.Android.UsbSerial.Driver
 			mPort = new STM32SerialPort(mDevice, 0, this);
 		}
 
-		public class STM32SerialPort : CommonUsbSerialPort
+        public static Dictionary<int, int[]> GetSupportedDevices()
+        {
+            return new Dictionary<int, int[]>
+                {
+                    {
+                        UsbId.VENDOR_STM, new int[]
+                        {
+                            UsbId.STM32_STLINK,
+                            UsbId.STM32_VCOM
+                        }
+                    }
+                };
+        }
+
+        public class STM32SerialPort : CommonUsbSerialPort
 		{
 			readonly string TAG = nameof(STM32SerialDriver);
 
@@ -291,20 +305,6 @@ namespace Hoho.Android.UsbSerial.Driver
 			{
 				int value = (mRts ? 0x2 : 0) | (mDtr ? 0x1 : 0);
 				SendAcmControlMessage(SET_CONTROL_LINE_STATE, value, null);
-			}
-
-			public static Dictionary<int, int[]> GetSupportedDevices()
-			{
-				return new Dictionary<int, int[]>
-				{
-					{
-						UsbId.VENDOR_STM, new int[]
-						{
-							UsbId.STM32_STLINK,
-							UsbId.STM32_VCOM
-						}
-					}
-				};
 			}
 		}
 	}

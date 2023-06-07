@@ -46,6 +46,7 @@ namespace Hoho.Android.UsbSerial.Driver
             probeTable.AddDriver(typeof(FtdiSerialDriver));
             probeTable.AddDriver(typeof(ProlificSerialDriver));
             probeTable.AddDriver(typeof(Ch34xSerialDriver));
+            probeTable.AddDriver(typeof(STM32SerialDriver));
             return probeTable;
         }
 

@@ -68,7 +68,7 @@ namespace Hoho.Android.UsbSerial.Driver
             private static int SET_CONTROL_LINE_STATE = 0x22;
             private static int SEND_BREAK = 0x23;
 
-            private IUsbSerialDriver Driver;
+            private new readonly IUsbSerialDriver Driver;
 
             //public CdcAcmSerialPort(UsbDevice device, int portNumber) : base(device, portNumber)
             //{

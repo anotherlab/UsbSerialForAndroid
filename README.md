@@ -1,7 +1,5 @@
 # UsbSerialForAndroid
 
-[![Build Status](https://chrismillercode.visualstudio.com/UsbSerialForAndroid/_apis/build/status/anotherlab.UsbSerialForAndroid?branchName=master)](https://chrismillercode.visualstudio.com/UsbSerialForAndroid/_build/latest?definitionId=1&branchName=master)
-
 This is a driver library to allow your Xamarin Android app to communicate with many common USB serial hardware. It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
 available on Android 3.1+.
 
@@ -93,17 +91,17 @@ This is a port of the usb-serial-for-android library and code examples written f
 
 For common problems, see the
 [Troubleshooting](https://github.com/mik3y/usb-serial-for-android/wiki/Troubleshooting)
-wiki page for usb-serial-for-android library.
+wiki page for usb-serial-for-android library. For other help and discussion, please join the usb-serial-for-android Google Group,
+[usb-serial-for-android](https://groups.google.com/forum/?fromgroups#!forum/usb-serial-for-android).  These two resources are for the Android Java version, but this library is port of that code base.
 
-For other help and discussion, please join the usb-serial-for-android Google Group,
-[usb-serial-for-android](https://groups.google.com/forum/?fromgroups#!forum/usb-serial-for-android).
-
-Pull Requests are welcome, but please include what hardware was used for testing. I do not have the hardware or the bandwidth to test the various chipsets supported by the library.
+Pull Requests are welcome, but please include what hardware was used for testing. We do not have the hardware or the bandwidth to test the various chipsets supported by the library.
 
 We will do our best to repond to reported issues. If you have a code fix or suggestion, we are only looking at changes submitted as pull requests.
 
+For more information about contributing or reporting an issue, please see [](https://github.com/anotherlab/UsbSerialForAndroid/blob/main/CONTRIBUTING.md) for more information for what we are looking for and how to get started.
+
 ## Author, License, and Copyright
 
-This library is licensed under LGPL Version 2.1. Please see LICENSE.txt for the complete license.
+This library is licensed under the MIT License. Please see [LICENSE.txt](https://github.com/anotherlab/UsbSerialForAndroid/blob/main/LICENSE.txt) for the complete license.
 
 Copyright 2017, Tyler Technologies. All Rights Reserved. Portions of this library are based on the [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android) and [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) libraries. Their rights remain intact.

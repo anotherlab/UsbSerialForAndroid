@@ -209,9 +209,10 @@ namespace Hoho.Android.UsbSerial.Driver
 
 					lock(mWriteBufferLock)
 					{
-						byte[] writeBuffer;
+                        writeLength = Math.Min(src.Length - offset, mWriteBuffer.Length);
 
-						writeLength = Math.Min(src.Length - offset, mWriteBuffer.Length);
+                        /*
+						//byte[] writeBuffer;
 						if (offset == 0)
 							writeBuffer = src;
 						else
@@ -221,7 +222,10 @@ namespace Hoho.Android.UsbSerial.Driver
 						}
 
 						amtWritten = mConnection.BulkTransfer(mWriteEndpoint, writeBuffer, writeLength, timeoutMillis);
-					}
+						*/
+                        // Issue#36 The bulkTransfer supports offsets
+                        amtWritten = mConnection.BulkTransfer(mWriteEndpoint, src, offset, writeLength, timeoutMillis);
+                    }
 					if(amtWritten <= 0)
 						throw new IOException($"Error writing {writeLength} bytes at offset {offset} length={src.Length}");
 

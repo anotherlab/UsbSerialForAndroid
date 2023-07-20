@@ -75,8 +75,8 @@ namespace Hoho.Android.UsbSerial.Driver
             private static int READ_HEADER_LENGTH = 2; // contains MODEM_STATUS
 
             // https://developer.android.com/reference/android/hardware/usb/UsbConstants#USB_DIR_IN
-            private static int REQTYPE_HOST_TO_DEVICE = UsbConstants.UsbTypeVendor | 128; // UsbConstants.USB_DIR_OUT;
-            private static int REQTYPE_DEVICE_TO_HOST = UsbConstants.UsbTypeVendor | 0;   // UsbConstants.USB_DIR_IN;
+            private static int REQTYPE_HOST_TO_DEVICE = UsbConstants.UsbTypeVendor | UsbSupport.UsbDirOut; // UsbConstants.USB_DIR_OUT;
+            private static int REQTYPE_DEVICE_TO_HOST = UsbConstants.UsbTypeVendor | UsbSupport.UsbDirIn;   // UsbConstants.USB_DIR_IN;
 
             private static int RESET_REQUEST = 0;
             private static int MODEM_CONTROL_REQUEST = 1;
@@ -469,7 +469,7 @@ namespace Hoho.Android.UsbSerial.Driver
                 if (purgeReadBuffers)
                 {
                     int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, RESET_REQUEST,
-                            RESET_PURGE_RX, mPortNumber + 1, null, 0, USB_WRITE_TIMEOUT_MILLIS);
+                            RESET_PURGE_TX, mPortNumber + 1, null, 0, USB_WRITE_TIMEOUT_MILLIS);
                     if (result != 0)
                     {
                         throw new IOException("Flushing RX failed: result=" + result);

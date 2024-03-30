@@ -95,7 +95,7 @@ namespace Hoho.Android.UsbSerial.Driver
 						{
 							if (!mConnection.ClaimInterface(mControlInterface, true))
 								throw new IOException("Could not claim control interface");
-							(Driver as STM32SerialDriver).mCtrlInterf = i;
+							(Driver as STM32SerialDriver).mCtrlInterf = mControlInterface.Id;
 							controlInterfaceFound = true;
 							break;
 						}

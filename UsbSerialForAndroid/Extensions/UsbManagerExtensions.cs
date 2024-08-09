@@ -27,7 +27,16 @@ namespace Hoho.Android.UsbSerial.Util
             var completionSource = new TaskCompletionSource<bool>();
 
             var usbPermissionReceiver = new UsbPermissionReceiver(completionSource);
-            context.RegisterReceiver(usbPermissionReceiver, new IntentFilter(ACTION_USB_PERMISSION));
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+            {
+#pragma warning disable CA1416
+                context.RegisterReceiver(usbPermissionReceiver, new IntentFilter(ACTION_USB_PERMISSION), ReceiverFlags.NotExported);
+#pragma warning restore CA1416
+            }
+            else
+            {
+                context.RegisterReceiver(usbPermissionReceiver, new IntentFilter(ACTION_USB_PERMISSION));
+            }
 
             // Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE or FLAG_MUTABLE be specified when creating a PendingIntent.
 #if NET6_0_OR_GREATER
@@ -36,9 +45,14 @@ namespace Hoho.Android.UsbSerial.Util
             PendingIntentFlags pendingIntentFlags = Build.VERSION.SdkInt >= (BuildVersionCodes)31 ? (PendingIntentFlags).33554432 : 0;
 #endif
 
-            var intent = PendingIntent.GetBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), pendingIntentFlags);
+            var intent = new Intent(ACTION_USB_PERMISSION);
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.UpsideDownCake)
+            {
+                intent.SetPackage(context.PackageName);
+            }
+            var pendingIntent = PendingIntent.GetBroadcast(context, 0, intent, pendingIntentFlags);
 
-            manager.RequestPermission(device, intent);
+            manager.RequestPermission(device, pendingIntent);
 
             return completionSource.Task;
         }

@@ -42,7 +42,7 @@ namespace Hoho.Android.UsbSerial.Util
 #if NET6_0_OR_GREATER
             PendingIntentFlags pendingIntentFlags = Build.VERSION.SdkInt >= BuildVersionCodes.S ? PendingIntentFlags.Mutable : 0;
 #else
-            PendingIntentFlags pendingIntentFlags = Build.VERSION.SdkInt >= (BuildVersionCodes)31 ? (PendingIntentFlags).33554432 : 0;
+            PendingIntentFlags pendingIntentFlags = Build.VERSION.SdkInt >= (BuildVersionCodes)31 ? (PendingIntentFlags)33554432 : 0;
 #endif
 
             var intent = new Intent(ACTION_USB_PERMISSION);

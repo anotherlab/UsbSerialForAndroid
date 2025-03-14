@@ -1,6 +1,6 @@
 # UsbSerialForAndroid
 
-This is a driver library to allow your Xamarin Android app to communicate with many common USB serial hardware. It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
+This is a driver library to allow your Xamarin Android or Microsoft Android app to communicate with many common USB serial hardware. It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
 available on Android 3.1+.
 
 No root access, ADK, or special kernel drivers are required; all drivers are implemented in
@@ -20,7 +20,9 @@ git branch -u origin/main main
 git remote set-head origin -a
 ```
 
-This library currently supports Xamarin.Android and .NET 6 (and .NET 7). The demo app currently targets .NET 7, but the code was written for Xamarin.Android.
+This library currently supports Xamarin.Android, .NET 6, .NET 7, and .NET 8. The demo app currently targets .NET 8, but the code was written for Xamarin.Android.  The code works with .NET 9 and an upcoming update will update the demo projects to .NET 9.
+
+Support for Xamarin will be dropped in the next update.  Microsoft has ended support for Xamarin and you can no longer support apps to the Google Play Store that were built with Xamarin.
 
 ## Structure
 

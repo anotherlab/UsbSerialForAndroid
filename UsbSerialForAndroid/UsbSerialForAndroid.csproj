@@ -1,6 +1,6 @@
-<Project Sdk="Xamarin.Legacy.Sdk/0.2.0-alpha4">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net8.0-android34.0</TargetFrameworks>
+    <TargetFramework>net8.0-android34.0</TargetFramework>
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>

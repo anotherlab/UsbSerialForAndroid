@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-android34.0</TargetFramework>
+    <TargetFramework>net9.0-android35.0</TargetFramework>
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>

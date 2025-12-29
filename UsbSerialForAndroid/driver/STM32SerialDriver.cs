@@ -13,12 +13,13 @@ using Android.Hardware.Usb;
 using Android.Util;
 
 using Java.Nio;
+using Android.OS;
 
 namespace Hoho.Android.UsbSerial.Driver
 {
 	public class STM32SerialDriver : UsbSerialDriver
 	{
-		readonly string TAG = nameof(STM32SerialDriver);
+		// private readonly string TAG = nameof(STM32SerialDriver);
 
 		int mCtrlInterf;
 
@@ -149,8 +150,22 @@ namespace Hoho.Android.UsbSerial.Driver
 
                         ByteBuffer buf = ByteBuffer.AllocateDirect(dest.Length);
 
-                        if (!request.Queue(buf, buf.Limit()))
-							throw new IOException("Error queuing request");
+                        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                        {
+#pragma warning disable CA1416
+                            if (!request.Queue(buf))
+                            {
+                                throw new IOException("Error queueing request.");
+                            }
+#pragma warning restore CA1416
+                        }
+                        else
+                        {
+#pragma warning disable CA1422
+                            if (!request.Queue(buf, buf.Limit()))
+                                throw new IOException("Error queuing request");
+#pragma warning restore CA1422
+                        }
 
 						UsbRequest response = mConnection.RequestWait();
 						if (response == null)
@@ -276,15 +291,15 @@ namespace Hoho.Android.UsbSerial.Driver
 						throw new ArgumentException($"Bad value for parity: {parity}");
 				}
 
-				byte[] msg = {
+                byte[] msg = [
 					(byte)(baudRate & 0xff),
-					(byte) ((baudRate >> 8 ) & 0xff),
-					(byte) ((baudRate >> 16) & 0xff),
-					(byte) ((baudRate >> 24) & 0xff),
+					(byte)((baudRate >> 8 ) & 0xff),
+					(byte)((baudRate >> 16) & 0xff),
+					(byte)((baudRate >> 24) & 0xff),
 					stopBitsBytes,
 					parityBitesBytes,
 					(byte) dataBits
-				};
+				];
 				SendAcmControlMessage(SET_LINE_CODING, 0, msg);
 			}
 

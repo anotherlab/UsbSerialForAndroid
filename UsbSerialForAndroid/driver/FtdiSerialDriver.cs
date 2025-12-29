@@ -83,8 +83,10 @@ namespace Hoho.Android.UsbSerial.Driver
             private static int SET_BAUD_RATE_REQUEST = 3;
             private static int SET_DATA_REQUEST = 4;
             private static int GET_MODEM_STATUS_REQUEST = 5;
-            private static int SET_LATENCY_TIMER_REQUEST = 9;
-            private static int GET_LATENCY_TIMER_REQUEST = 10;
+
+            // These constants are defined in ftdi driver sources, e.g. ftdi_sio.h but never referenced in this code
+            // private static int SET_LATENCY_TIMER_REQUEST = 9;
+            // private static int GET_LATENCY_TIMER_REQUEST = 10;
 
             private static int MODEM_CONTROL_DTR_ENABLE = 0x0101;
             private static int MODEM_CONTROL_DTR_DISABLE = 0x0100;

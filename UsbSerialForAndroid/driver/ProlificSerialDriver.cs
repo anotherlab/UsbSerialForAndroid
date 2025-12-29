@@ -80,10 +80,12 @@ namespace Hoho.Android.UsbSerial.Driver
 
             private static int SET_LINE_REQUEST = 0x20; // same as CDC SET_LINE_CODING
             private static int SET_CONTROL_REQUEST = 0x22; // same as CDC SET_CONTROL_LINE_STATE
-            private static int SEND_BREAK_REQUEST = 0x23; // same as CDC SEND_BREAK
+            // This constant is defined, but never referenced in this code
+            // private static int SEND_BREAK_REQUEST = 0x23; // same as CDC SEND_BREAK
             private static int GET_CONTROL_HXN_REQUEST = 0x80;
             private static int GET_CONTROL_REQUEST = 0x87;
-            private static int STATUS_NOTIFICATION = 0xa1; // similar to CDC SERIAL_STATE but different length
+            // This constant is defined, but never referenced in this code
+            // private static int STATUS_NOTIFICATION = 0xa1; // similar to CDC SERIAL_STATE but different length
 
             /* RESET_HXN_REQUEST */
             private static int RESET_HXN_RX_PIPE = 1;
@@ -128,7 +130,7 @@ namespace Hoho.Android.UsbSerial.Driver
 
             private int mStatus = 0;
             private volatile Thread mReadStatusThread = null;
-            private Object mReadStatusThreadLock = new Object();
+            private Object mReadStatusThreadLock = new();
             Boolean mStopReadStatusThread = false;
             private IOException mReadStatusException = null;
 
@@ -202,7 +204,7 @@ namespace Hoho.Android.UsbSerial.Driver
                     InControlTransfer(VENDOR_IN_REQTYPE, VENDOR_READ_REQUEST, 0x8080, 0, 1);
                     return true;
                 }
-                catch (IOException ignored)
+                catch (IOException)
                 {
                     return false;
                 }
@@ -288,7 +290,7 @@ namespace Hoho.Android.UsbSerial.Driver
                                 if ((data[0] & GET_CONTROL_FLAG_CD) == 0) mStatus |= STATUS_FLAG_CD;
                                 if ((data[0] & GET_CONTROL_FLAG_RI) == 0) mStatus |= STATUS_FLAG_RI;
                             }
-                            ThreadStart mReadStatusThreadDelegate = new ThreadStart(ReadStatusThreadFunction);
+                            ThreadStart mReadStatusThreadDelegate = new(ReadStatusThreadFunction);
 
                             mReadStatusThread = new Thread(mReadStatusThreadDelegate);
 
@@ -510,59 +512,30 @@ namespace Hoho.Android.UsbSerial.Driver
                     return;
                 }
 
-                byte[] lineRequestData = new byte[7];
-
-                lineRequestData[0] = (byte)(baudRate & 0xff);
-                lineRequestData[1] = (byte)((baudRate >> 8) & 0xff);
-                lineRequestData[2] = (byte)((baudRate >> 16) & 0xff);
-                lineRequestData[3] = (byte)((baudRate >> 24) & 0xff);
-
-                switch (stopBits)
-                {
-                    case StopBits.One:
-                        lineRequestData[4] = 0;
-                        break;
-
-                    case StopBits.OnePointFive:
-                        lineRequestData[4] = 1;
-                        break;
-
-                    case StopBits.Two:
-                        lineRequestData[4] = 2;
-                        break;
-
-                    default:
-                        throw new IllegalArgumentException("Unknown stopBits value: " + stopBits);
-                }
-
-                switch (parity)
-                {
-                    case Parity.None:
-                        lineRequestData[5] = 0;
-                        break;
-
-                    case Parity.Odd:
-                        lineRequestData[5] = 1;
-                        break;
-
-                    case Parity.Even:
-                        lineRequestData[5] = 2;
-                        break;
-
-                    case Parity.Mark:
-                        lineRequestData[5] = 3;
-                        break;
-
-                    case Parity.Space:
-                        lineRequestData[5] = 4;
-                        break;
-
-                    default:
-                        throw new IllegalArgumentException("Unknown parity value: " + parity);
-                }
-
-                lineRequestData[6] = (byte)dataBits;
-
+                byte[] lineRequestData =
+                [
+                    (byte)(baudRate & 0xff),
+                    (byte)((baudRate >> 8) & 0xff),
+                    (byte)((baudRate >> 16) & 0xff),
+                    (byte)((baudRate >> 24) & 0xff),
+                    stopBits switch
+                    {
+                        StopBits.One => 0,
+                        StopBits.OnePointFive => 1,
+                        StopBits.Two => 2,
+                        _ => throw new IllegalArgumentException("Unknown stopBits value: " + stopBits),
+                    },
+                    parity switch
+                    {
+                        Parity.None => 0,
+                        Parity.Odd => 1,
+                        Parity.Even => 2,
+                        Parity.Mark => 3,
+                        Parity.Space => 4,
+                        _ => throw new IllegalArgumentException("Unknown parity value: " + parity),
+                    },
+                    (byte)dataBits,
+                ];
                 CtrlOut(SET_LINE_REQUEST, 0, 0, lineRequestData);
 
                 ResetDevice();

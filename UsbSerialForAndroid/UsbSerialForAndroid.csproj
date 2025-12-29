@@ -1,9 +1,16 @@
-<Project Sdk="Xamarin.Legacy.Sdk/0.2.0-alpha4">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net6.0-android;net7.0-android;monoandroid5.0</TargetFrameworks>
+    <!-- Target .NET 10 Android -->
+    <TargetFramework>net10.0-android</TargetFramework>
+
+    <!-- Minimum supported Android API level -->
     <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+
+    <!-- Optional project settings -->
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+
+    <!-- Assembly metadata -->
     <AssemblyName>Android.UsbSerial</AssemblyName>
     <RootNamespace>Hoho.Android.UsbSerial</RootNamespace>
   </PropertyGroup>

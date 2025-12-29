@@ -162,7 +162,7 @@ namespace Hoho.Android.UsbSerial.Driver
                         {
                             Close();
                         }
-                        catch (IOException e)
+                        catch (IOException)
                         {
                             // Ignore IOExceptions during close()
                         }
@@ -236,12 +236,12 @@ namespace Hoho.Android.UsbSerial.Driver
 
             private void SetBaudRate(int baudRate)
             {
-                byte[] data = new byte[] {
+                byte[] data = [
                     (byte) ( baudRate & 0xff),
                     (byte) ((baudRate >> 8 ) & 0xff),
                     (byte) ((baudRate >> 16) & 0xff),
                     (byte) ((baudRate >> 24) & 0xff)
-                };
+                ];
                 int ret = mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, SILABSER_SET_BAUDRATE,
                         0, 0, data, 4, USB_WRITE_TIMEOUT_MILLIS);
                 if (ret < 0)
@@ -256,25 +256,14 @@ namespace Hoho.Android.UsbSerial.Driver
                 SetBaudRate(baudRate);
 
                 int configDataBits = 0;
-                switch (dataBits)
+                configDataBits |= dataBits switch
                 {
-                    case DATABITS_5:
-                        configDataBits |= 0x0500;
-                        break;
-                    case DATABITS_6:
-                        configDataBits |= 0x0600;
-                        break;
-                    case DATABITS_7:
-                        configDataBits |= 0x0700;
-                        break;
-                    case DATABITS_8:
-                        configDataBits |= 0x0800;
-                        break;
-                    default:
-                        configDataBits |= 0x0800;
-                        break;
-                }
-
+                    DATABITS_5 => 0x0500,
+                    DATABITS_6 => 0x0600,
+                    DATABITS_7 => 0x0700,
+                    DATABITS_8 => 0x0800,
+                    _ => 0x0800,
+                };
                 switch (parity)
                 {
                     case Parity.Odd:

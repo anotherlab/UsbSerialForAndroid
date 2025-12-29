@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<!-- Status messages -->
+	<string name="status_loading">Loading devices...</string>
+	<string name="status_loading_device_info">Loading device information...</string>
+	<string name="status_refreshing">Refreshing...</string>
+	<string name="status_error_loading_devices">Error loading devices</string>
+	<string name="status_no_device_information">No USB device information available</string>
+	<string name="status_ready_to_connect">Ready to connect</string>
+	<string name="status_error_loading">Error</string>
+	<string name="status_no_port">No port</string>
+
+	<string name="unknown_product">Unknown Product</string>
+	<string name="usb_device_detached">USB device detached</string>
+	<string name="vendor_id">Vendor ID</string>
+	<string name="device_id">Device ID</string>
+	<string name="port_number">Port Number</string>
+	<string name="device_name">Device Name</string>
+	<string name="tap_to_connect">Tap a device to connect</string>
+
+	<!-- Toasts -->
+	<string name="toast_permission_denied">Permission denied for USB device</string>
+	<string name="toast_usb_manager_unavailable">USB Manager unavailable</string>
+
+	<!-- Plurals for device count -->
+	<plurals name="devices_found">
+		<item quantity="one">%d device found</item>
+		<item quantity="other">%d devices found</item>
+	</plurals>
+
+	<string name="app_name">UsbSerialForAndroid Demo</string>
+	<string name="connectButton">Connect</string>
+	<string name="device_info_title">USB Device Information</string>
+</resources>

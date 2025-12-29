@@ -31,6 +31,7 @@ namespace Hoho.Android.UsbSerial.Extensions
             VendorId = device.VendorId;
             DeviceId = device.DeviceId;
             PortNumber = port.PortNumber;
+            DeviceName = device.DeviceName;
         }
 
         private UsbSerialPortInfo(Parcel parcel)
@@ -38,6 +39,7 @@ namespace Hoho.Android.UsbSerial.Extensions
             VendorId = parcel.ReadInt();
             DeviceId = parcel.ReadInt();
             PortNumber = parcel.ReadInt();
+            DeviceName = parcel.ReadString();
         }
 
         public int VendorId { get; set; }
@@ -45,6 +47,8 @@ namespace Hoho.Android.UsbSerial.Extensions
         public int DeviceId { get; set; }
 
         public int PortNumber { get; set; }
+
+        public string DeviceName { get; set; }
 
         #region IParcelable implementation
 
@@ -58,6 +62,7 @@ namespace Hoho.Android.UsbSerial.Extensions
             dest.WriteInt(VendorId);
             dest.WriteInt(DeviceId);
             dest.WriteInt(PortNumber);
+            dest.WriteString(DeviceName);
         }
 
         #endregion

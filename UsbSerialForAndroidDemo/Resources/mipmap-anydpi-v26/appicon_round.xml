@@ -1,0 +1,5 @@
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+	<background android:drawable="@mipmap/usbserial_background"/>
+	<foreground android:drawable="@mipmap/usbserial_foreground"/>
+	<monochrome android:drawable="@mipmap/usbserial_monochrome"/>
+</adaptive-icon>

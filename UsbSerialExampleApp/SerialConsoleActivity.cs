@@ -116,7 +116,21 @@ namespace UsbSerialExampleApp
 
             base.OnResume();
 
-            var portInfo = Intent.GetParcelableExtra(EXTRA_TAG) as UsbSerialPortInfo;
+            UsbSerialPortInfo portInfo;
+            
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // Android 33
+            {
+#pragma warning disable CA1416 // Suppress warning to validate platform compatibility
+                portInfo = Intent.GetParcelableExtra(EXTRA_TAG, Java.Lang.Class.FromType(typeof(UsbSerialPortInfo))) as UsbSerialPortInfo;
+#pragma warning restore CA1416
+            }
+            else
+            {
+#pragma warning disable CA1422 // Suppress warning for obsolete API usage
+                portInfo = Intent.GetParcelableExtra(EXTRA_TAG) as UsbSerialPortInfo;
+#pragma warning restore CA1422
+            }
+
             int vendorId = portInfo.VendorId;
             int deviceId = portInfo.DeviceId;
             int portNumber = portInfo.PortNumber;

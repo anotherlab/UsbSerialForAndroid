@@ -127,7 +127,7 @@ namespace Hoho.Android.UsbSerial.Driver
                         {
                             Close();
                         }
-                        catch (IOException e)
+                        catch (IOException)
                         {
                             // Ignore IOExceptions during close()
                         }
@@ -270,7 +270,7 @@ namespace Hoho.Android.UsbSerial.Driver
 
             private void Initialize()
             {
-                CheckState("init #1", 0x5f, 0, new int[] { -1 /* 0x27, 0x30 */, 0x00 });
+                CheckState("init #1", 0x5f, 0, [-1, 0x00]);
 
                 if (ControlOut(0xa1, 0, 0) < 0)
                 {
@@ -279,14 +279,14 @@ namespace Hoho.Android.UsbSerial.Driver
 
                 SetBaudRate(DEFAULT_BAUD_RATE);
 
-                CheckState("init #4", 0x95, 0x2518, new int[] { -1 /* 0x56, c3*/, 0x00 });
+                CheckState("init #4", 0x95, 0x2518, [-1, 0x00]);
 
                 if (ControlOut(0x9a, 0x2518, 0x0050) < 0)
                 {
                     throw new IOException("init failed! #5");
                 }
 
-                CheckState("init #6", 0x95, 0x0706, new int[] { -1 /*0xf?*/, -1 /*0xec,0xee*/});
+                CheckState("init #6", 0x95, 0x0706, [-1, -1]);
 
                 if (ControlOut(0xa1, 0x501f, 0xd90a) < 0)
                 {
@@ -297,19 +297,19 @@ namespace Hoho.Android.UsbSerial.Driver
 
                 SetControlLines();
 
-                CheckState("init #10", 0x95, 0x0706, new int[] { -1 /* 0x9f, 0xff*/, 0xee });
+                CheckState("init #10", 0x95, 0x0706, [-1, 0xee]);
             }
 
             private void SetBaudRate(int baudRate)
             {
-                int[] baud = new int[] { 50, 0x1680, 0x0024, 75, 0x6480, 0x0018, 100, 0x8B80, 0x0012,
+                int[] baud = [ 50, 0x1680, 0x0024, 75, 0x6480, 0x0018, 100, 0x8B80, 0x0012,
 				110, 0x9580, 0x00B4,  150, 0xB280, 0x000C, 300, 0xD980, 0x0006, 600, 0x6481, 0x0018,
 				900, 0x9881, 0x0010, 1200, 0xB281, 0x000C, 1800, 0xCC81, 0x0008, 2400, 0xD981, 0x0006,
 				3600, 0x3082, 0x0020, 4800, 0x6482, 0x0018, 9600, 0xB282, 0x000C, 14400, 0xCC82, 0x0008,
 				19200, 0xD982, 0x0006, 33600, 0x4D83, 0x00D3, 38400, 0x6483, 0x0018, 56000, 0x9583, 0x0018,
 				57600, 0x9883, 0x0010, 76800, 0xB283, 0x000C, 115200, 0xCC83, 0x0008, 128000, 0xD183, 0x003B,
 				153600, 0xD983, 0x0006, 230400, 0xE683, 0x0004, 460800, 0xF383, 0x0002, 921600, 0xF387, 0x0000,
-				1500000, 0xFC83, 0x0003, 2000000, 0xFD83, 0x0002 };
+				1500000, 0xFC83, 0x0003, 2000000, 0xFD83, 0x0002 ];
 
                 for (int i = 0; i < baud.Length / 3; i++)
                 {

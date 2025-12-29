@@ -1,6 +1,6 @@
 # UsbSerialForAndroid
 
-This is a driver library to allow your Xamarin Android or Microsoft Android app to communicate with many common USB serial hardware. It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
+This is a driver library to allow your Microsoft Android app to communicate with many common USB serial hardware. It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
 available on Android 3.1+.
 
 No root access, ADK, or special kernel drivers are required; all drivers are implemented in
@@ -9,7 +9,7 @@ functions for use with your own protocols. The appropriate driver is picked base
 
 This is a Xamarin C# port of Mike Wakerly's Java [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android) library. It followed that library very closely when it was ported. The main changes were to make the method names follow C# standard naming conventions. Some Java specific data types were replaced with .NET types and the reflection code is .NET specific. Code examples written for the Java version of the library should translate more or less faithfully to C#.
 
-It also includes code derived from a portion of LusoVU's [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) library. XamarinUsbSerial was a C# wrapper for the Java usb-serial-for-android. It used an older version of the usb-serial-for-android .jar file. Only the the C# code was used, the Java library is not referenced.
+It also includes code derived from a portion of LusoVU's [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) library. XamarinUsbSerial was a C# wrapper for the Java usb-serial-for-android. It used an older version of the usb-serial-for-android .jar file. Only the C# code was used, the Java library is not referenced.
 
 The default branch has been renamed from master to main. if you have a local clone, you can run the following commands to update the name of the default branch
 
@@ -19,17 +19,17 @@ git fetch origin
 git branch -u origin/main main
 git remote set-head origin -a
 ```
-
-This library currently supports Xamarin.Android, .NET 6, .NET 7, and .NET 8. The demo app currently targets .NET 8, but the code was written for Xamarin.Android.  The code works with .NET 9 and an upcoming update will update the demo projects to .NET 9.
-
-Support for Xamarin will be dropped in the next update.  Microsoft has ended support for Xamarin and you can no longer support apps to the Google Play Store that were built with Xamarin.
+This library supports .NET 10 and Microsoft Android. Support for Xamarin Android and previous versions of .NET have been dropped. Sample application has been replaced with a new app demo. If you need the old demo or want to support older versions of .NET, please use [verson 1.1.1](https://github.com/anotherlab/UsbSerialForAndroid/releases/tag/v1.1.1).
 
 ## Structure
 
-This solution contains two projects.
+This solution contains two projects and a slnx solution file.
 
 * UsbSerialForAndroid - A port of the Java library usb-serial-for-android
-* UsbSerialExampleApp - A Xamarin version of the example app that comes with usb-serial-for-android
+* UsbSerialForAndroidDemo - A Microsoft Android version of the example app that comes with usb-serial-for-android
+
+
+The original demo and the .sln format solution file are deprecated and will be removed in a subsequent update.
 
 ## Getting Started
 **1.** Reference the library to your project
@@ -107,3 +107,5 @@ For more information about contributing or reporting an issue, please see [](htt
 This library is licensed under the MIT License. Please see [LICENSE.txt](https://github.com/anotherlab/UsbSerialForAndroid/blob/main/LICENSE.txt) for the complete license.
 
 Copyright 2017, Tyler Technologies. All Rights Reserved. Portions of this library are based on the [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android) and [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) libraries. Their rights remain intact.
+
+The icon used for the demo app was derived from [Serial to USB by Bonegolem](https://thenounproject.com/browse/icons/term/serial-to-usb/) from <a href="https://thenounproject.com/browse/icons/term/serial-to-usb/" (CC BY 3.0)

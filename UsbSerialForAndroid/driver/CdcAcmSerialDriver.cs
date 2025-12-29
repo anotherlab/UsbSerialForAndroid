@@ -29,7 +29,7 @@ namespace Hoho.Android.UsbSerial.Driver
 {
     public class CdcAcmSerialDriver : UsbSerialDriver
     {
-        private static string TAG = typeof(CdcAcmSerialDriver).Name;
+        private static readonly string TAG = typeof(CdcAcmSerialDriver).Name;
 
         public CdcAcmSerialDriver(UsbDevice device, bool? enableAsyncReads = null)
         {
@@ -49,7 +49,7 @@ namespace Hoho.Android.UsbSerial.Driver
 
         class CdcAcmSerialPort : CommonUsbSerialPort
         {
-            private bool mEnableAsyncReads;
+            private readonly bool mEnableAsyncReads;
             private UsbInterface mControlInterface;
             private UsbInterface mDataInterface;
 
@@ -60,13 +60,13 @@ namespace Hoho.Android.UsbSerial.Driver
             private bool mRts = false;
             private bool mDtr = false;
 
-            private static int USB_RECIP_INTERFACE = 0x01;
-            private static int USB_RT_ACM = UsbConstants.UsbTypeClass | USB_RECIP_INTERFACE;
+            private const int USB_RECIP_INTERFACE = 0x01;
+            private const int USB_RT_ACM = UsbConstants.UsbTypeClass | USB_RECIP_INTERFACE;
 
-            private static int SET_LINE_CODING = 0x20;  // USB CDC 1.1 section 6.2
-            private static int GET_LINE_CODING = 0x21;
-            private static int SET_CONTROL_LINE_STATE = 0x22;
-            private static int SEND_BREAK = 0x23;
+            private const int SET_LINE_CODING = 0x20;  // USB CDC 1.1 section 6.2
+            private const int GET_LINE_CODING = 0x21;
+            private const int SET_CONTROL_LINE_STATE = 0x22;
+            private const int SEND_BREAK = 0x23;
 
             private new readonly IUsbSerialDriver Driver;
 
@@ -115,7 +115,7 @@ namespace Hoho.Android.UsbSerial.Driver
                     else
                     {
                         Log.Debug(TAG, "trying default interface logic");
-                        openInterface();
+                        OpenInterface();
                     }
 
                     if (mEnableAsyncReads)
@@ -212,7 +212,7 @@ namespace Hoho.Android.UsbSerial.Driver
                 }
             }
 
-            private void openInterface()
+            private void OpenInterface()
             {
                 Log.Debug(TAG, "claiming interfaces, count=" + mDevice.InterfaceCount);
 
@@ -263,7 +263,7 @@ namespace Hoho.Android.UsbSerial.Driver
             {
                 if (mEnableAsyncReads)
                 {
-                    UsbRequest request = new UsbRequest();
+                    UsbRequest request = new();
                     try
                     {
                         request.Initialize(mConnection, mReadEndpoint);
@@ -280,18 +280,30 @@ namespace Hoho.Android.UsbSerial.Driver
                         // and https://bugzilla.xamarin.com/show_bug.cgi?id=31260
 
                         ByteBuffer buf = ByteBuffer.Wrap(dest);
-                        if (!request.Queue(buf, dest.Length))
+
+                        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
                         {
-                            throw new IOException("Error queueing request.");
+#pragma warning disable CA1416
+                            if (!request.Queue(buf))
+                            {
+                                throw new IOException("Error queueing request.");
+                            }
+#pragma warning restore CA1416
+                        }
+                        else
+                        {
+#pragma warning disable CA1422
+                            if (!request.Queue(buf, dest.Length))
+                            {
+                                throw new IOException("Error queueing request.");
+                            }
+#pragma warning restore CA1422
                         }
 
-                        UsbRequest response = mConnection.RequestWait();
-                        if (response == null)
-                        {
-                            throw new IOException("Null response");
-                        }
+                        _ = mConnection.RequestWait() ?? throw new IOException("Null response");
 
                         int nread = buf.Position();
+
                         if (nread > 0)
                         {
                             // CJM: This differs from the Java implementation.  The dest buffer was
@@ -303,7 +315,7 @@ namespace Hoho.Android.UsbSerial.Driver
 
                             System.Buffer.BlockCopy(buf.ToByteArray(), 0, dest, 0, dest.Length);
 
-                            Log.Debug(TAG, HexDump.DumpHexString(dest, 0, Math.Min(32, dest.Length)));
+                            Log.Debug(TAG, HexDump.ByteArrayToHexString(dest, 32));
                             return nread;
                         }
                         else
@@ -385,34 +397,30 @@ namespace Hoho.Android.UsbSerial.Driver
 
             public override void SetParameters(int baudRate, int dataBits, StopBits stopBits, Parity parity)
             {
-                byte stopBitsByte;
-                switch (stopBits)
+                var stopBitsByte = stopBits switch
                 {
-                    case StopBits.One: stopBitsByte = 0; break;
-                    case StopBits.OnePointFive: stopBitsByte = 1; break;
-                    case StopBits.Two: stopBitsByte = 2; break;
-                    default: throw new IllegalArgumentException("Bad value for stopBits: " + stopBits);
-                }
-
-                byte parityBitesByte;
-                switch (parity)
+                    StopBits.One => (byte)0,
+                    StopBits.OnePointFive => (byte)1,
+                    StopBits.Two => (byte)2,
+                    _ => throw new IllegalArgumentException("Bad value for stopBits: " + stopBits),
+                };
+                var parityBitesByte = parity switch
                 {
-                    case Parity.None: parityBitesByte = 0; break;
-                    case Parity.Odd: parityBitesByte = 1; break;
-                    case Parity.Even: parityBitesByte = 2; break;
-                    case Parity.Mark: parityBitesByte = 3; break;
-                    case Parity.Space: parityBitesByte = 4; break;
-                    default: throw new IllegalArgumentException("Bad value for parity: " + parity);
-                }
-
-                byte[] msg = {
+                    Parity.None => (byte)0,
+                    Parity.Odd => (byte)1,
+                    Parity.Even => (byte)2,
+                    Parity.Mark => (byte)3,
+                    Parity.Space => (byte)4,
+                    _ => throw new IllegalArgumentException("Bad value for parity: " + parity),
+                };
+                byte[] msg = [
                                 (byte) ( baudRate & 0xff),
                                 (byte) ((baudRate >> 8 ) & 0xff),
                                 (byte) ((baudRate >> 16) & 0xff),
                                 (byte) ((baudRate >> 24) & 0xff),
                                 stopBitsByte,
                                 parityBitesByte,
-                                (byte) dataBits};
+                                (byte) dataBits];
                 SendAcmControlMessage(SET_LINE_CODING, 0, msg);
             }
 

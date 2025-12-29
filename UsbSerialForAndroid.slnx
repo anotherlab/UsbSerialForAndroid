@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="UsbSerialForAndroid/UsbSerialForAndroid.csproj" />
+  <Project Path="UsbSerialForAndroidDemo/UsbSerialForAndroidDemo.csproj" Id="3816aadb-ed3d-4da2-b8dd-8ea2a10a9ebb">
+    <Deploy />
+  </Project>
+</Solution>

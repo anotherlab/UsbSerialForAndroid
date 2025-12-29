@@ -22,14 +22,9 @@ using Java.Lang.Reflect;
 
 namespace Hoho.Android.UsbSerial.Driver
 {
-    public class UsbSerialProber
+    public class UsbSerialProber(ProbeTable probeTable)
     {
-        private ProbeTable mProbeTable;
-
-        public UsbSerialProber(ProbeTable probeTable)
-        {
-            mProbeTable = probeTable;
-        }
+        private readonly ProbeTable mProbeTable = probeTable;
 
         public static UsbSerialProber GetDefaultProber()
         {
@@ -40,7 +35,7 @@ namespace Hoho.Android.UsbSerial.Driver
 
         public static ProbeTable GetDefaultProbeTable()
         {
-            ProbeTable probeTable = new ProbeTable();
+            ProbeTable probeTable = new();
             probeTable.AddDriver(typeof(CdcAcmSerialDriver));
             probeTable.AddDriver(typeof(Cp21xxSerialDriver));
             probeTable.AddDriver(typeof(FtdiSerialDriver));
@@ -61,7 +56,7 @@ namespace Hoho.Android.UsbSerial.Driver
          */
         public List<IUsbSerialDriver> FindAllDrivers(UsbManager usbManager)
         {
-            List< IUsbSerialDriver > result = new List<IUsbSerialDriver>();
+            List< IUsbSerialDriver > result = [];
 
             foreach (UsbDevice usbDevice in usbManager.DeviceList.Values)
             {
@@ -92,7 +87,7 @@ namespace Hoho.Android.UsbSerial.Driver
                 IUsbSerialDriver driver;
                 try
                 {
-                    driver = (IUsbSerialDriver)Activator.CreateInstance(driverClass, new System.Object[] {usbDevice});
+                    driver = (IUsbSerialDriver)Activator.CreateInstance(driverClass, [usbDevice]);
                 } catch (NoSuchMethodException e) {
                     throw new RuntimeException(e);
                 } catch (IllegalArgumentException e) {

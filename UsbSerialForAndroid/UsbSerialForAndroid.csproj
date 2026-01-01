@@ -3,6 +3,12 @@
     <!-- Target .NET 10 Android -->
     <TargetFramework>net10.0-android</TargetFramework>
 
+    <Version>2.0.1.1</Version> <!-- Primary package version -->
+    <AssemblyVersion>2.0.1.1</AssemblyVersion> <!-- Version used by the CLR -->
+    <FileVersion>2.0.1.1</FileVersion> <!-- Version shown in file properties -->
+    <InformationalVersion>2.0.1.1</InformationalVersion> <!-- Additional product version info -->
+    <PackageVersion>2.0.1</PackageVersion>
+
     <!-- Minimum supported Android API level -->
     <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
 

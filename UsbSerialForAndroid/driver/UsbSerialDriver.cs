@@ -9,36 +9,35 @@ using System.Collections.Generic;
 
 using Android.Hardware.Usb;
 
-namespace Hoho.Android.UsbSerial.Driver
+namespace Anotherlab.UsbSerialForAndroid.Driver;
+
+public interface IUsbSerialDriver
 {
-    public interface IUsbSerialDriver
+    UsbDevice Device { get; }
+
+    UsbDevice GetDevice();
+
+    List<UsbSerialPort> Ports { get; }
+    List<UsbSerialPort> GetPorts();
+
+    //Dictionary<int, int[]> GetSupportedDevices();
+}
+public class UsbSerialDriver : IUsbSerialDriver
+{
+    protected UsbDevice mDevice;
+    protected UsbSerialPort mPort;
+    public UsbDevice Device => GetDevice();
+
+    public List<UsbSerialPort> Ports => GetPorts();
+
+    public UsbDevice GetDevice()
     {
-        UsbDevice Device { get; }
-
-        UsbDevice GetDevice();
-
-        List<UsbSerialPort> Ports { get; }
-        List<UsbSerialPort> GetPorts();
-
-        //Dictionary<int, int[]> GetSupportedDevices();
+        return mDevice;
     }
-    public class UsbSerialDriver : IUsbSerialDriver
+
+    public virtual List<UsbSerialPort> GetPorts()
     {
-        protected UsbDevice mDevice;
-        protected UsbSerialPort mPort;
-        public UsbDevice Device => GetDevice();
-
-        public List<UsbSerialPort> Ports => GetPorts();
-
-        public UsbDevice GetDevice()
-        {
-            return mDevice;
-        }
-
-        public virtual List<UsbSerialPort> GetPorts()
-        {
-            return new List<UsbSerialPort> { mPort };
-        }
-
+        return new List<UsbSerialPort> { mPort };
     }
+
 }

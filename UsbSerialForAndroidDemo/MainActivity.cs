@@ -3,8 +3,6 @@ using Android.Hardware.Usb;
 using Android.Util;
 using Android.Views;
 using AndroidX.RecyclerView.Widget;
-using Hoho.Android.UsbSerial.Driver;
-using Hoho.Android.UsbSerial.Extensions;
 
 [assembly: UsesFeature("android.hardware.usb.host")]
 
@@ -16,7 +14,7 @@ namespace UsbSerialForAndroidDemo
     public class MainActivity : Activity
     {
         static readonly string TAG = typeof(MainActivity).Name;
-        const string ACTION_USB_PERMISSION = "com.hoho.android.usbserial.demo.USB_PERMISSION";
+        const string ACTION_USB_PERMISSION = "com.anotherlab.usbserialforandroid.demo.USB_PERMISSION";
 
         UsbManager? usbManager;
         RecyclerView? recyclerView;

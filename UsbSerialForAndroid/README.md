@@ -9,32 +9,11 @@ functions for use with your own protocols. The appropriate driver is picked base
 
 This is a C# port of Mike Wakerly's Java [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android) library. It followed that library very closely when it was ported. The main changes were to make the method names follow C# standard naming conventions. Some Java specific data types were replaced with .NET types and the reflection code is .NET specific. Code examples written for the Java version of the library should translate more or less faithfully to C#.
 
-It also includes code derived from a portion of LusoVU's [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) library. XamarinUsbSerial was a C# wrapper for the Java usb-serial-for-android. It used an older version of the usb-serial-for-android .jar file. Only the C# code was used, the Java library is not referenced. 
+It also includes code derived from a portion of LusoVU's [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) library. XamarinUsbSerial was a C# wrapper for the Java usb-serial-for-android. It used an older version of the usb-serial-for-android .jar file. Only the C# code was used, the Java library is not referenced.
 
-The default branch has been renamed from master to main. if you have a local clone, you can run the following commands to update the name of the default branch
-
-```
-git branch -m master main
-git fetch origin
-git branch -u origin/main main
-git remote set-head origin -a
-```
 This library supports .NET 10 and Microsoft Android. Support for Xamarin Android and previous versions of .NET have been dropped. Sample application has been replaced with a new app demo. If you need the old demo or want to support older versions of .NET, please use [verson 1.1.1](https://github.com/anotherlab/UsbSerialForAndroid/releases/tag/v1.1.1).
 
-## Breaking changes
-I'm cleaning up the code in order to publish this as a nuget package. Someone created a nuget package based on a two year old version of this code base and published to nuget under their own name (and without credit to the original authors). I changed the root namespace from `Hoho.Android.UsbSerial` to `Anotherlab.UsbSerialForAndroid` to make it easier to find on nuget. 
-
-The "Hoho" namespace came from original Java library package name, [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android), and while I based this code from that library, they are separate.
-
-## Structure
-
-This solution contains two projects and a slnx solution file.
-
-* UsbSerialForAndroid - A port of the Java library usb-serial-for-android
-* UsbSerialForAndroidDemo - A Microsoft Android version of the example app that comes with usb-serial-for-android
-
-
-The original demo and the .sln format solution file are deprecated and will be removed in a subsequent update.
+If you are seeing this from the nuget package, the source code for this library and demo project can be accessed via the Github repo [UsbSerialForAndroid](https://github.com/anotherlab/UsbSerialForAndroid).
 
 ## Getting Started
 **1.** Reference the library to your project

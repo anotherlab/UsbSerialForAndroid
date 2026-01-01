@@ -10,9 +10,9 @@ using System.Threading;
 using Android.Hardware.Usb;
 using Android.Util;
 using System.Threading.Tasks;
-using Hoho.Android.UsbSerial.Driver;
+using Anotherlab.UsbSerialForAndroid.Driver;
 
-namespace Hoho.Android.UsbSerial.Extensions
+namespace Anotherlab.UsbSerialForAndroid.Extensions
 {
     public class SerialInputOutputManager : IDisposable
     {

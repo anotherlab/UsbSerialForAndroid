@@ -9,28 +9,27 @@ using System;
 using Android.Runtime;
 using Java.Lang;
 
-namespace Hoho.Android.UsbSerial.Driver
+namespace Anotherlab.UsbSerialForAndroid.Driver;
+
+public class UsbSerialRuntimeException : RuntimeException
 {
-    public class UsbSerialRuntimeException : RuntimeException
+    public UsbSerialRuntimeException() : base()
     {
-        public UsbSerialRuntimeException() : base()
-        {
-        }
+    }
 
-        public UsbSerialRuntimeException(Throwable throwable) : base(throwable)
-        {
-        }
+    public UsbSerialRuntimeException(Throwable throwable) : base(throwable)
+    {
+    }
 
-        public UsbSerialRuntimeException(string detailMessage) : base(detailMessage)
-        {
-        }
+    public UsbSerialRuntimeException(string detailMessage) : base(detailMessage)
+    {
+    }
 
-        public UsbSerialRuntimeException(string detailMessage, Throwable throwable) : base(detailMessage, throwable)
-        {
-        }
+    public UsbSerialRuntimeException(string detailMessage, Throwable throwable) : base(detailMessage, throwable)
+    {
+    }
 
-        protected UsbSerialRuntimeException(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
-        {
-        }
+    protected UsbSerialRuntimeException(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
+    {
     }
 }

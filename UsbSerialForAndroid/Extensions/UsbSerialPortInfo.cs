@@ -7,85 +7,84 @@
 
 using Android.OS;
 using Java.Interop;
-using Hoho.Android.UsbSerial.Driver;
+using Anotherlab.UsbSerialForAndroid.Driver;
 
-namespace Hoho.Android.UsbSerial.Extensions
+namespace Anotherlab.UsbSerialForAndroid.Extensions;
+
+public sealed class UsbSerialPortInfo : Java.Lang.Object, IParcelable
 {
-    public sealed class UsbSerialPortInfo : Java.Lang.Object, IParcelable
+    static readonly IParcelableCreator creator = new ParcelableCreator();
+
+    [ExportField("CREATOR")]
+    public static IParcelableCreator GetCreator()
     {
-        static readonly IParcelableCreator creator = new ParcelableCreator();
+        return creator;
+    }
 
-        [ExportField("CREATOR")]
-        public static IParcelableCreator GetCreator()
+    public UsbSerialPortInfo()
+    {
+    }
+
+    public UsbSerialPortInfo(UsbSerialPort port)
+    {
+        var device = port.Driver.Device;
+        VendorId = device.VendorId;
+        DeviceId = device.DeviceId;
+        PortNumber = port.PortNumber;
+        DeviceName = device.DeviceName;
+    }
+
+    private UsbSerialPortInfo(Parcel parcel)
+    {
+        VendorId = parcel.ReadInt();
+        DeviceId = parcel.ReadInt();
+        PortNumber = parcel.ReadInt();
+        DeviceName = parcel.ReadString();
+    }
+
+    public int VendorId { get; set; }
+
+    public int DeviceId { get; set; }
+
+    public int PortNumber { get; set; }
+
+    public string DeviceName { get; set; }
+
+    #region IParcelable implementation
+
+    public int DescribeContents()
+    {
+        return 0;
+    }
+
+    public void WriteToParcel(Parcel dest, ParcelableWriteFlags flags)
+    {
+        dest.WriteInt(VendorId);
+        dest.WriteInt(DeviceId);
+        dest.WriteInt(PortNumber);
+        dest.WriteString(DeviceName);
+    }
+
+    #endregion
+
+    #region ParcelableCreator implementation
+
+    public sealed class ParcelableCreator : Java.Lang.Object, IParcelableCreator
+    {
+        #region IParcelableCreator implementation
+
+        public Java.Lang.Object CreateFromParcel(Parcel parcel)
         {
-            return creator;
+            return new UsbSerialPortInfo(parcel);
         }
 
-        public UsbSerialPortInfo()
+        public Java.Lang.Object[] NewArray(int size)
         {
-        }
-
-        public UsbSerialPortInfo(UsbSerialPort port)
-        {
-            var device = port.Driver.Device;
-            VendorId = device.VendorId;
-            DeviceId = device.DeviceId;
-            PortNumber = port.PortNumber;
-            DeviceName = device.DeviceName;
-        }
-
-        private UsbSerialPortInfo(Parcel parcel)
-        {
-            VendorId = parcel.ReadInt();
-            DeviceId = parcel.ReadInt();
-            PortNumber = parcel.ReadInt();
-            DeviceName = parcel.ReadString();
-        }
-
-        public int VendorId { get; set; }
-
-        public int DeviceId { get; set; }
-
-        public int PortNumber { get; set; }
-
-        public string DeviceName { get; set; }
-
-        #region IParcelable implementation
-
-        public int DescribeContents()
-        {
-            return 0;
-        }
-
-        public void WriteToParcel(Parcel dest, ParcelableWriteFlags flags)
-        {
-            dest.WriteInt(VendorId);
-            dest.WriteInt(DeviceId);
-            dest.WriteInt(PortNumber);
-            dest.WriteString(DeviceName);
-        }
-
-        #endregion
-
-        #region ParcelableCreator implementation
-
-        public sealed class ParcelableCreator : Java.Lang.Object, IParcelableCreator
-        {
-            #region IParcelableCreator implementation
-
-            public Java.Lang.Object CreateFromParcel(Parcel parcel)
-            {
-                return new UsbSerialPortInfo(parcel);
-            }
-
-            public Java.Lang.Object[] NewArray(int size)
-            {
-                return new UsbSerialPortInfo[size];
-            }
-
-            #endregion
+            return new UsbSerialPortInfo[size];
         }
 
         #endregion
     }
+
+    #endregion
 }

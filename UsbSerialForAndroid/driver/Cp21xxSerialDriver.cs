@@ -8,364 +8,354 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-
-using Android.App;
-using Android.Content;
 using Android.Hardware.Usb;
-using Android.OS;
-using Android.Runtime;
-using Android.Views;
-using Android.Widget;
 using Android.Util;
 
-namespace Hoho.Android.UsbSerial.Driver
-{
-    public class Cp21xxSerialDriver : UsbSerialDriver
-    {
-        private readonly string TAG = typeof(Cp21xxSerialDriver).Name;
+namespace Anotherlab.UsbSerialForAndroid.Driver;
 
-        public Cp21xxSerialDriver(UsbDevice device)
+public class Cp21xxSerialDriver : UsbSerialDriver
+{
+    private readonly string TAG = typeof(Cp21xxSerialDriver).Name;
+
+    public Cp21xxSerialDriver(UsbDevice device)
+    {
+        mDevice = device;
+        mPort = new Cp21xxSerialPort(mDevice, 0, this);
+    }
+
+    public class Cp21xxSerialPort : CommonUsbSerialPort
+    {
+        private const int DEFAULT_BAUD_RATE = 9600;
+
+        private const int USB_WRITE_TIMEOUT_MILLIS = 5000;
+
+        /*
+         * Configuration Request Types
+         */
+        private const int REQTYPE_HOST_TO_DEVICE = 0x41;
+        private const int REQTYPE_DEVICE_TO_HOST = 0xc1;
+
+        /*
+         * Configuration Request Codes
+         */
+        private const int SILABSER_IFC_ENABLE_REQUEST_CODE = 0x00;
+        private const int SILABSER_SET_BAUDDIV_REQUEST_CODE = 0x01;
+        private const int SILABSER_SET_LINE_CTL_REQUEST_CODE = 0x03;
+        private const int SILABSER_SET_MHS_REQUEST_CODE = 0x07;
+        private const int SILABSER_SET_BAUDRATE = 0x1E;
+        private const int SILABSER_FLUSH_REQUEST_CODE = 0x12;
+
+        private const int FLUSH_READ_CODE = 0x0a;
+        private const int FLUSH_WRITE_CODE = 0x05;
+
+        private const int GET_MODEM_STATUS_REQUEST = 0x08; // 0x08 Get modem status. 
+        private const int MODEM_STATUS_CTS = 0x10;
+        private const int MODEM_STATUS_DSR = 0x20;
+        private const int MODEM_STATUS_RI = 0x40;
+        private const int MODEM_STATUS_CD = 0x80;
+        /*
+         * SILABSER_IFC_ENABLE_REQUEST_CODE
+         */
+        private const int UART_ENABLE = 0x0001;
+        private const int UART_DISABLE = 0x0000;
+
+        /*
+         * SILABSER_SET_BAUDDIV_REQUEST_CODE
+         */
+        private const int BAUD_RATE_GEN_FREQ = 0x384000;
+
+        /*
+         * SILABSER_SET_MHS_REQUEST_CODE
+         */
+        private const int MCR_DTR = 0x0001;
+        private const int MCR_RTS = 0x0002;
+        private const int MCR_ALL = 0x0003;
+
+        private const int CONTROL_WRITE_DTR = 0x0100;
+        private const int CONTROL_WRITE_RTS = 0x0200;
+
+        private UsbEndpoint mReadEndpoint;
+        private UsbEndpoint mWriteEndpoint;
+
+        private readonly new IUsbSerialDriver Driver;
+        private string TAG => (Driver as Cp21xxSerialDriver)?.TAG;
+
+
+
+        public Cp21xxSerialPort(UsbDevice device, int portNumber, IUsbSerialDriver driver) : base(device, portNumber)
         {
-            mDevice = device;
-            mPort = new Cp21xxSerialPort(mDevice, 0, this);
+            Driver = driver;
         }
 
-        public class Cp21xxSerialPort : CommonUsbSerialPort
+        public override IUsbSerialDriver GetDriver()
         {
-            private const int DEFAULT_BAUD_RATE = 9600;
+            return Driver;
+        }
 
-            private const int USB_WRITE_TIMEOUT_MILLIS = 5000;
+        private int SetConfigSingle(int request, int value)
+        {
+            return mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, request, value,
+                    0, null, 0, USB_WRITE_TIMEOUT_MILLIS);
+        }
 
-            /*
-             * Configuration Request Types
-             */
-            private const int REQTYPE_HOST_TO_DEVICE = 0x41;
-            private const int REQTYPE_DEVICE_TO_HOST = 0xc1;
-
-            /*
-             * Configuration Request Codes
-             */
-            private const int SILABSER_IFC_ENABLE_REQUEST_CODE = 0x00;
-            private const int SILABSER_SET_BAUDDIV_REQUEST_CODE = 0x01;
-            private const int SILABSER_SET_LINE_CTL_REQUEST_CODE = 0x03;
-            private const int SILABSER_SET_MHS_REQUEST_CODE = 0x07;
-            private const int SILABSER_SET_BAUDRATE = 0x1E;
-            private const int SILABSER_FLUSH_REQUEST_CODE = 0x12;
-
-            private const int FLUSH_READ_CODE = 0x0a;
-            private const int FLUSH_WRITE_CODE = 0x05;
-
-            private const int GET_MODEM_STATUS_REQUEST = 0x08; // 0x08 Get modem status. 
-            private const int MODEM_STATUS_CTS = 0x10;
-            private const int MODEM_STATUS_DSR = 0x20;
-            private const int MODEM_STATUS_RI = 0x40;
-            private const int MODEM_STATUS_CD = 0x80;
-            /*
-             * SILABSER_IFC_ENABLE_REQUEST_CODE
-             */
-            private const int UART_ENABLE = 0x0001;
-            private const int UART_DISABLE = 0x0000;
-
-            /*
-             * SILABSER_SET_BAUDDIV_REQUEST_CODE
-             */
-            private const int BAUD_RATE_GEN_FREQ = 0x384000;
-
-            /*
-             * SILABSER_SET_MHS_REQUEST_CODE
-             */
-            private const int MCR_DTR = 0x0001;
-            private const int MCR_RTS = 0x0002;
-            private const int MCR_ALL = 0x0003;
-
-            private const int CONTROL_WRITE_DTR = 0x0100;
-            private const int CONTROL_WRITE_RTS = 0x0200;
-
-            private UsbEndpoint mReadEndpoint;
-            private UsbEndpoint mWriteEndpoint;
-
-            private readonly new IUsbSerialDriver Driver;
-            private string TAG => (Driver as Cp21xxSerialDriver)?.TAG;
-
-
-
-            public Cp21xxSerialPort(UsbDevice device, int portNumber, IUsbSerialDriver driver) : base(device, portNumber)
+        public override void Open(UsbDeviceConnection connection)
+        {
+            if (mConnection != null)
             {
-                Driver = driver;
+                throw new IOException("Already opened.");
             }
 
-            public override IUsbSerialDriver GetDriver()
+            mConnection = connection;
+            Boolean opened = false;
+            try
             {
-                return Driver;
-            }
-
-            private int SetConfigSingle(int request, int value)
-            {
-                return mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, request, value,
-                        0, null, 0, USB_WRITE_TIMEOUT_MILLIS);
-            }
-
-            public override void Open(UsbDeviceConnection connection)
-            {
-                if (mConnection != null)
+                for (int i = 0; i < mDevice.InterfaceCount; i++)
                 {
-                    throw new IOException("Already opened.");
+                    UsbInterface usbIface = mDevice.GetInterface(i);
+                    if (mConnection.ClaimInterface(usbIface, true))
+                    {
+                        Log.Debug(TAG, $"claimInterface {i} SUCCESS");
+                    }
+                    else
+                    {
+                        Log.Debug(TAG, $"claimInterface {i} FAIL");
+                    }
                 }
 
-                mConnection = connection;
-                Boolean opened = false;
-                try
+                UsbInterface dataIface = mDevice.GetInterface(mDevice.InterfaceCount - 1);
+                for (int i = 0; i < dataIface.EndpointCount; i++)
                 {
-                    for (int i = 0; i < mDevice.InterfaceCount; i++)
+                    UsbEndpoint ep = dataIface.GetEndpoint(i);
+                    if (ep.Type == (UsbAddressing)UsbSupport.UsbEndpointXferBulk)
                     {
-                        UsbInterface usbIface = mDevice.GetInterface(i);
-                        if (mConnection.ClaimInterface(usbIface, true))
+                        if (ep.Direction == (UsbAddressing)UsbSupport.UsbDirIn)
                         {
-                            Log.Debug(TAG, $"claimInterface {i} SUCCESS");
+                            mReadEndpoint = ep;
                         }
                         else
                         {
-                            Log.Debug(TAG, $"claimInterface {i} FAIL");
-                        }
-                    }
-
-                    UsbInterface dataIface = mDevice.GetInterface(mDevice.InterfaceCount - 1);
-                    for (int i = 0; i < dataIface.EndpointCount; i++)
-                    {
-                        UsbEndpoint ep = dataIface.GetEndpoint(i);
-                        if (ep.Type == (UsbAddressing)UsbSupport.UsbEndpointXferBulk)
-                        {
-                            if (ep.Direction == (UsbAddressing)UsbSupport.UsbDirIn)
-                            {
-                                mReadEndpoint = ep;
-                            }
-                            else
-                            {
-                                mWriteEndpoint = ep;
-                            }
-                        }
-                    }
-
-                    SetConfigSingle(SILABSER_IFC_ENABLE_REQUEST_CODE, UART_ENABLE);
-                    SetConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, MCR_ALL | CONTROL_WRITE_DTR | CONTROL_WRITE_RTS);
-                    SetConfigSingle(SILABSER_SET_BAUDDIV_REQUEST_CODE, BAUD_RATE_GEN_FREQ / DEFAULT_BAUD_RATE);
-                    //            setParameters(DEFAULT_BAUD_RATE, DEFAULT_DATA_BITS, DEFAULT_STOP_BITS, DEFAULT_PARITY);
-                    opened = true;
-                }
-                finally
-                {
-                    if (!opened)
-                    {
-                        try
-                        {
-                            Close();
-                        }
-                        catch (IOException)
-                        {
-                            // Ignore IOExceptions during close()
+                            mWriteEndpoint = ep;
                         }
                     }
                 }
-            }
 
-            public override void Close()
-            {
-                if (mConnection == null)
-                {
-                    throw new IOException("Already closed");
-                }
-                try
-                {
-                    SetConfigSingle(SILABSER_IFC_ENABLE_REQUEST_CODE, UART_DISABLE);
-                    mConnection.Close();
-                }
-                finally
-                {
-                    mConnection = null;
-                }
+                SetConfigSingle(SILABSER_IFC_ENABLE_REQUEST_CODE, UART_ENABLE);
+                SetConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, MCR_ALL | CONTROL_WRITE_DTR | CONTROL_WRITE_RTS);
+                SetConfigSingle(SILABSER_SET_BAUDDIV_REQUEST_CODE, BAUD_RATE_GEN_FREQ / DEFAULT_BAUD_RATE);
+                //            setParameters(DEFAULT_BAUD_RATE, DEFAULT_DATA_BITS, DEFAULT_STOP_BITS, DEFAULT_PARITY);
+                opened = true;
             }
-
-            public override int Read(byte[] dest, int timeoutMillis)
+            finally
             {
-                int numBytesRead;
-                lock(mReadBufferLock) {
-                    int readAmt = Math.Min(dest.Length, mReadBuffer.Length);
-                    numBytesRead = mConnection.BulkTransfer(mReadEndpoint, mReadBuffer, readAmt,
-                            timeoutMillis);
-                    if (numBytesRead < 0)
+                if (!opened)
+                {
+                    try
                     {
-                        // This sucks: we get -1 on timeout, not 0 as preferred.
-                        // We *should* use UsbRequest, except it has a bug/api oversight
-                        // where there is no way to determine the number of bytes read
-                        // in response :\ -- http://b.android.com/28023
-                        return 0;
+                        Close();
                     }
-                    Buffer.BlockCopy(mReadBuffer, 0, dest, 0, numBytesRead);
-                }
-                return numBytesRead;
-            }
-
-            public override int Write(byte[] src, int timeoutMillis)
-            {
-                int offset = 0;
-                int writeLength;
-                int amtWritten;
-
-                while (offset < src.Length)
-                {
-                    lock(mWriteBufferLock) {
-
-                        writeLength = src.Length - offset;
-
-                        amtWritten = mConnection.BulkTransfer(mWriteEndpoint, src, offset, writeLength,
-                                timeoutMillis);
-                    }
-                    if (amtWritten <= 0)
+                    catch (IOException)
                     {
-                        throw new IOException(
-                            $"Error writing {writeLength} bytes at offset {offset} length={src.Length}");
+                        // Ignore IOExceptions during close()
                     }
-
-                    Log.Debug(TAG, $"Wrote amt={amtWritten} attempted={writeLength}");
-                    offset += amtWritten;
                 }
-                return offset;
-            }
-
-            private void SetBaudRate(int baudRate)
-            {
-                byte[] data = [
-                    (byte) ( baudRate & 0xff),
-                    (byte) ((baudRate >> 8 ) & 0xff),
-                    (byte) ((baudRate >> 16) & 0xff),
-                    (byte) ((baudRate >> 24) & 0xff)
-                ];
-                int ret = mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, SILABSER_SET_BAUDRATE,
-                        0, 0, data, 4, USB_WRITE_TIMEOUT_MILLIS);
-                if (ret < 0)
-                {
-                    throw new IOException("Error setting baud rate.");
-                }
-            }
-
-
-            public override void SetParameters(int baudRate, int dataBits, StopBits stopBits, Parity parity)
-            {
-                SetBaudRate(baudRate);
-
-                int configDataBits = 0;
-                configDataBits |= dataBits switch
-                {
-                    DATABITS_5 => 0x0500,
-                    DATABITS_6 => 0x0600,
-                    DATABITS_7 => 0x0700,
-                    DATABITS_8 => 0x0800,
-                    _ => 0x0800,
-                };
-                switch (parity)
-                {
-                    case Parity.Odd:
-                        configDataBits |= 0x0010;
-                        break;
-                    case Parity.Even:
-                        configDataBits |= 0x0020;
-                        break;
-                }
-
-                switch (stopBits)
-                {
-                    case StopBits.One:
-                        configDataBits |= 0;
-                        break;
-                    case StopBits.Two:
-                        configDataBits |= 2;
-                        break;
-                }
-                SetConfigSingle(SILABSER_SET_LINE_CTL_REQUEST_CODE, configDataBits);
-            }
-
-            private int GetStatus()
-            {
-                byte[] data = new byte[1];
-                int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_DEVICE_TO_HOST, GET_MODEM_STATUS_REQUEST,
-                        0, 0, data, data.Length, USB_WRITE_TIMEOUT_MILLIS);
-                if (result != 1)
-                {
-                    throw new IOException("Get modem status failed: result=" + result);
-                }
-                return data[0];
-            }
-
-            public override bool GetCD()
-            {
-                return (GetStatus() & MODEM_STATUS_CD) != 0;
-            }
-
-            public override bool GetCTS()
-            {
-                return (GetStatus() & MODEM_STATUS_CTS) != 0;
-            }
-
-            public override bool GetDSR()
-            {
-                return (GetStatus() & MODEM_STATUS_DSR) != 0;
-            }
-
-            public override bool GetDTR()
-            {
-                return (GetStatus() & MCR_DTR) != 0;
-            }
-
-            public override void SetDTR(bool value)
-            {
-                SetConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, (value ? MCR_DTR : 0) | CONTROL_WRITE_DTR);
-            }
-
-            public override bool GetRI()
-            {
-                return (GetStatus() & MODEM_STATUS_RI) != 0;
-            }
-
-            public override bool GetRTS()
-            {
-                return (GetStatus() & MCR_RTS) != 0;
-            }
-
-            public override void SetRTS(bool value)
-            {
-                SetConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, (value ? MCR_RTS : 0) | CONTROL_WRITE_RTS);
-            }
-
-            public override Boolean PurgeHwBuffers(Boolean purgeReadBuffers, Boolean purgeWriteBuffers)
-            {
-                int value = (purgeReadBuffers ? FLUSH_READ_CODE : 0)
-                        | (purgeWriteBuffers ? FLUSH_WRITE_CODE : 0);
-
-                if (value != 0)
-                {
-                    SetConfigSingle(SILABSER_FLUSH_REQUEST_CODE, value);
-                }
-
-                return true;
             }
         }
 
-        public static Dictionary<int, int[]> GetSupportedDevices()
+        public override void Close()
         {
-            return new Dictionary<int, int[]>
+            if (mConnection == null)
             {
-                {
-                    UsbId.VENDOR_SILABS, new int[]
-                    {
-                        UsbId.SILABS_CP2102,
-                        UsbId.SILABS_CP2105,
-                        UsbId.SILABS_CP2108,
-                        UsbId.SILABS_CP2110
-                    }
-                }
-            };
+                throw new IOException("Already closed");
+            }
+            try
+            {
+                SetConfigSingle(SILABSER_IFC_ENABLE_REQUEST_CODE, UART_DISABLE);
+                mConnection.Close();
+            }
+            finally
+            {
+                mConnection = null;
+            }
         }
+
+        public override int Read(byte[] dest, int timeoutMillis)
+        {
+            int numBytesRead;
+            lock(mReadBufferLock) {
+                int readAmt = Math.Min(dest.Length, mReadBuffer.Length);
+                numBytesRead = mConnection.BulkTransfer(mReadEndpoint, mReadBuffer, readAmt,
+                        timeoutMillis);
+                if (numBytesRead < 0)
+                {
+                    // This sucks: we get -1 on timeout, not 0 as preferred.
+                    // We *should* use UsbRequest, except it has a bug/api oversight
+                    // where there is no way to determine the number of bytes read
+                    // in response :\ -- http://b.android.com/28023
+                    return 0;
+                }
+                Buffer.BlockCopy(mReadBuffer, 0, dest, 0, numBytesRead);
+            }
+            return numBytesRead;
+        }
+
+        public override int Write(byte[] src, int timeoutMillis)
+        {
+            int offset = 0;
+            int writeLength;
+            int amtWritten;
+
+            while (offset < src.Length)
+            {
+                lock(mWriteBufferLock) {
+
+                    writeLength = src.Length - offset;
+
+                    amtWritten = mConnection.BulkTransfer(mWriteEndpoint, src, offset, writeLength,
+                            timeoutMillis);
+                }
+                if (amtWritten <= 0)
+                {
+                    throw new IOException(
+                        $"Error writing {writeLength} bytes at offset {offset} length={src.Length}");
+                }
+
+                Log.Debug(TAG, $"Wrote amt={amtWritten} attempted={writeLength}");
+                offset += amtWritten;
+            }
+            return offset;
+        }
+
+        private void SetBaudRate(int baudRate)
+        {
+            byte[] data = [
+                (byte) ( baudRate & 0xff),
+                (byte) ((baudRate >> 8 ) & 0xff),
+                (byte) ((baudRate >> 16) & 0xff),
+                (byte) ((baudRate >> 24) & 0xff)
+            ];
+            int ret = mConnection.ControlTransfer((UsbAddressing)REQTYPE_HOST_TO_DEVICE, SILABSER_SET_BAUDRATE,
+                    0, 0, data, 4, USB_WRITE_TIMEOUT_MILLIS);
+            if (ret < 0)
+            {
+                throw new IOException("Error setting baud rate.");
+            }
+        }
+
+
+        public override void SetParameters(int baudRate, int dataBits, StopBits stopBits, Parity parity)
+        {
+            SetBaudRate(baudRate);
+
+            int configDataBits = 0;
+            configDataBits |= dataBits switch
+            {
+                DATABITS_5 => 0x0500,
+                DATABITS_6 => 0x0600,
+                DATABITS_7 => 0x0700,
+                DATABITS_8 => 0x0800,
+                _ => 0x0800,
+            };
+            switch (parity)
+            {
+                case Parity.Odd:
+                    configDataBits |= 0x0010;
+                    break;
+                case Parity.Even:
+                    configDataBits |= 0x0020;
+                    break;
+            }
+
+            switch (stopBits)
+            {
+                case StopBits.One:
+                    configDataBits |= 0;
+                    break;
+                case StopBits.Two:
+                    configDataBits |= 2;
+                    break;
+            }
+            SetConfigSingle(SILABSER_SET_LINE_CTL_REQUEST_CODE, configDataBits);
+        }
+
+        private int GetStatus()
+        {
+            byte[] data = new byte[1];
+            int result = mConnection.ControlTransfer((UsbAddressing)REQTYPE_DEVICE_TO_HOST, GET_MODEM_STATUS_REQUEST,
+                    0, 0, data, data.Length, USB_WRITE_TIMEOUT_MILLIS);
+            if (result != 1)
+            {
+                throw new IOException("Get modem status failed: result=" + result);
+            }
+            return data[0];
+        }
+
+        public override bool GetCD()
+        {
+            return (GetStatus() & MODEM_STATUS_CD) != 0;
+        }
+
+        public override bool GetCTS()
+        {
+            return (GetStatus() & MODEM_STATUS_CTS) != 0;
+        }
+
+        public override bool GetDSR()
+        {
+            return (GetStatus() & MODEM_STATUS_DSR) != 0;
+        }
+
+        public override bool GetDTR()
+        {
+            return (GetStatus() & MCR_DTR) != 0;
+        }
+
+        public override void SetDTR(bool value)
+        {
+            SetConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, (value ? MCR_DTR : 0) | CONTROL_WRITE_DTR);
+        }
+
+        public override bool GetRI()
+        {
+            return (GetStatus() & MODEM_STATUS_RI) != 0;
+        }
+
+        public override bool GetRTS()
+        {
+            return (GetStatus() & MCR_RTS) != 0;
+        }
+
+        public override void SetRTS(bool value)
+        {
+            SetConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, (value ? MCR_RTS : 0) | CONTROL_WRITE_RTS);
+        }
+
+        public override Boolean PurgeHwBuffers(Boolean purgeReadBuffers, Boolean purgeWriteBuffers)
+        {
+            int value = (purgeReadBuffers ? FLUSH_READ_CODE : 0)
+                    | (purgeWriteBuffers ? FLUSH_WRITE_CODE : 0);
+
+            if (value != 0)
+            {
+                SetConfigSingle(SILABSER_FLUSH_REQUEST_CODE, value);
+            }
+
+            return true;
+        }
+    }
+
+    public static Dictionary<int, int[]> GetSupportedDevices()
+    {
+        return new Dictionary<int, int[]>
+        {
+            {
+                UsbId.VENDOR_SILABS, new int[]
+                {
+                    UsbId.SILABS_CP2102,
+                    UsbId.SILABS_CP2105,
+                    UsbId.SILABS_CP2108,
+                    UsbId.SILABS_CP2110
+                }
+            }
+        };
     }
 }

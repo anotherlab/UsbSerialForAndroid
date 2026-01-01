@@ -7,15 +7,14 @@
 
 using System;
 
-namespace Hoho.Android.UsbSerial.Extensions
-{
-    public class SerialDataReceivedArgs : EventArgs
-    {
-        public SerialDataReceivedArgs(byte[] data)
-        {
-            Data = data;
-        }
+namespace Anotherlab.UsbSerialForAndroid.Extensions;
 
-        public byte[] Data { get; private set; }
+public class SerialDataReceivedArgs : EventArgs
+{
+    public SerialDataReceivedArgs(byte[] data)
+    {
+        Data = data;
     }
+
+    public byte[] Data { get; private set; }
 }

@@ -1,17 +1,7 @@
-using Android.App;
 using Android.Content;
 using Android.Hardware.Usb;
 using Android.OS;
 using Android.Util;
-using Android.Views;
-using Android.Widget;
-using AndroidX.Core.View;
-using Hoho.Android.UsbSerial.Driver;
-using Hoho.Android.UsbSerial.Extensions;
-using Hoho.Android.UsbSerial.Util;
-using System;
-using System.Reflection.Metadata.Ecma335;
-using static Android.Icu.Text.IDNA;
 
 namespace UsbSerialForAndroidDemo;
 

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!-- Target .NET 10 Android -->
     <TargetFramework>net10.0-android</TargetFramework>
@@ -9,6 +9,21 @@
     <InformationalVersion>2.0.1.1</InformationalVersion> <!-- Additional product version info -->
     <PackageVersion>2.0.1</PackageVersion>
 
+    <Authors>anotherlab</Authors>
+    <Product>UsbSerialForAndroid</Product>
+    <PackageTags>usbserial,usb,serialport,serial,android,androidusb,usbhost,usb-serial,dotnetandroid,hardware,driver,peripherals,device,communications,net10.0-android,dotnet</PackageTags>
+    <Description>USB Serial library for Android
+This is a driver library to allow your Microsoft Android app to communicate with many common USB serial hardware. It uses the Android USB Host API available on Android 3.1+.
+
+No root access, ADK, or special kernel drivers are required; all drivers are implemented in C#. You get a raw serial port with Read(), Write(), and other basic functions for use with your own protocols. The appropriate driver is picked based on the device's Vendor ID and Product ID.      
+    </Description>
+
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/anotherlab/UsbSerialForAndroid</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>    
+    <PackageIcon>icon.png</PackageIcon>
+
     <!-- Minimum supported Android API level -->
     <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
 
@@ -17,7 +32,14 @@
     <ImplicitUsings>disable</ImplicitUsings>
 
     <!-- Assembly metadata -->
-    <AssemblyName>Android.UsbSerial</AssemblyName>
-    <RootNamespace>Hoho.Android.UsbSerial</RootNamespace>
+    <AssemblyName>UsbSerialForAndroid</AssemblyName>
+    <RootNamespace>Anotherlab.UsbSerialForAndroid</RootNamespace>
+  <Copyright>Copyright © 2017 Tyler Technologies Inc. All rights reserved.</Copyright>
+
   </PropertyGroup>
+      <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath=""/>
+        <None Include="LICENSE.txt" Pack="true" PackagePath=""/>
+        <None Include="icon.png" Pack="true" PackagePath=""/>
+    </ItemGroup>
 </Project>

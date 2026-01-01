@@ -9,21 +9,20 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Android.Hardware.Usb;
 
-using Hoho.Android.UsbSerial.Driver;
+using Anotherlab.UsbSerialForAndroid.Driver;
 
-namespace Hoho.Android.UsbSerial.Extensions
+namespace Anotherlab.UsbSerialForAndroid.Extensions;
+
+public static partial class AsyncExtensions
 {
-    public static partial class AsyncExtensions
+    public static Task<IList<IUsbSerialDriver>> FindAllDriversAsync(this UsbSerialProber prober, UsbManager manager)
     {
-        public static Task<IList<IUsbSerialDriver>> FindAllDriversAsync(this UsbSerialProber prober, UsbManager manager)
-        {
-            var tcs = new TaskCompletionSource<IList<IUsbSerialDriver>>();
+        var tcs = new TaskCompletionSource<IList<IUsbSerialDriver>>();
 
-            Task.Run(() =>
-            {
-                tcs.TrySetResult(prober.FindAllDrivers(manager));
-            });
-            return tcs.Task;
-        }
+        Task.Run(() =>
+        {
+            tcs.TrySetResult(prober.FindAllDrivers(manager));
+        });
+        return tcs.Task;
     }
 }

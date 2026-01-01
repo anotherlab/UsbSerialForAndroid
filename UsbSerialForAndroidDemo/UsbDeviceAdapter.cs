@@ -1,7 +1,6 @@
 using Android.Content;
 using Android.Views;
 using AndroidX.RecyclerView.Widget;
-using Hoho.Android.UsbSerial.Driver;
 
 namespace UsbSerialForAndroidDemo
 {

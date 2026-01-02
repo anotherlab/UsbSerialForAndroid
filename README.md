@@ -1,7 +1,7 @@
 # ![Logo](UsbSerialForAndroid/icon.png) UsbSerialForAndroid
-[![NuGet version (usbserialforandroid)](https://img.shields.io/nuget/v/usbserialforandroid?style=flat-square)](https://www.nuget.org/usbserialforandroid/)
+[![NuGet version (usbserialforandroid)](https://img.shields.io/nuget/v/usbserialforandroid?style=flat-square)](https://www.nuget.org/packages/UsbSerialForAndroid)
 
-This is a driver library to allow your Microsoft Android app to communicate with many common USB serial hardware. It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
+This is a .NET driver library to allow your Microsoft Android app to communicate with many common USB serial hardware. It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
 available on Android 3.1+.
 
 No root access, ADK, or special kernel drivers are required; all drivers are implemented in
@@ -12,15 +12,7 @@ This is a C# port of Mike Wakerly's Java [usb-serial-for-android](https://github
 
 It also includes code derived from a portion of LusoVU's [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) library. XamarinUsbSerial was a C# wrapper for the Java usb-serial-for-android. It used an older version of the usb-serial-for-android .jar file. Only the C# code was used, the Java library is not referenced. 
 
-The default branch has been renamed from master to main. if you have a local clone, you can run the following commands to update the name of the default branch
-
-```
-git branch -m master main
-git fetch origin
-git branch -u origin/main main
-git remote set-head origin -a
-```
-This library supports .NET 10 and Microsoft Android. Support for Xamarin Android and previous versions of .NET have been dropped. Sample application has been replaced with a new app demo. If you need the old demo or want to support older versions of .NET, please use [version 1.1.1](https://github.com/anotherlab/UsbSerialForAndroid/releases/tag/v1.1.1).
+This library supports .NET 10 and Microsoft Android. Support for Xamarin Android and previous versions of .NET have been dropped. The original Xamarin sample application has been replaced with a new app demo. If you need the old demo or want to support older versions of .NET, please use [version 1.1.1](https://github.com/anotherlab/UsbSerialForAndroid/releases/tag/v1.1.1).
 
 ## Breaking changes
 I cleaned up the code in order to publish this as a nuget package. Someone created a nuget package based on a two year old version of this code base and published to nuget under their own name (and without credit to the original authors). I changed the root namespace from `Hoho.Android.UsbSerial` to `Anotherlab.UsbSerialForAndroid` to make it easier to manage on nuget. 
@@ -38,7 +30,7 @@ This solution contains two projects and a slnx solution file.
 The original demo and the .sln format solution file were deprecated and removed removed prior to this release. As mentioned above, the last version of those files were in in [version 1.1.1](https://github.com/anotherlab/UsbSerialForAndroid/releases/tag/v1.1.1).
 
 ## Getting Started
-**1.** Grab the package from [nuget](https://www.nuget.org/usbserialforandroid/) or download the repo and and Reference the library to your project.
+**1.** Grab the package from [nuget](https://www.nuget.org/packages/UsbSerialForAndroid). You can clone or download the repo and Reference the library to your project.
 
 **2.** Copy the [device_filter.axml](https://github.com/anotherlab/UsbSerialForAndroid/blob/main/UsbSerialForAndroidDemo/Resources/xml/device_filter.xml) from the example app to your Resources/xml folder. Make sure that the Build Action is set to AndroidResource
 
@@ -60,7 +52,7 @@ The original demo and the .sln format solution file were deprecated and removed 
 **6.** Refer to [MainActivity.cs](https://github.com/anotherlab/UsbSerialForAndroid/blob/main/UsbSerialForAndroidDemo/MainActivity.cs) in the example app to see how connect to a serial device and read data from it.
 
 ## Working with unrecognized devices
-The UsbSerialForAndroid has been compiled with the Vendor ID/Product ID pairs for many common serial devices. If you have a device that is not defined by the library, but will work with one of the drivers, you can manually add the VID/PID pair. If you have a device that is not in the GetSupportedDevices() method for that driver, you can submit a pull request that adds the vendor and product IDs to that driver.
+The UsbSerialForAndroid library has been compiled with the Vendor ID/Product ID pairs for many common serial devices. If you have a device that is not defined by the library, but will work with one of the drivers, you can manually add the VID/PID pair. If you have a device that is not in the GetSupportedDevices() method for that driver, you can submit a pull request that adds the vendor and product IDs to that driver.
 
 UsbSerialProber is a class to help you find and instantiate compatible UsbSerialDrivers from the tree of connected UsbDevices. Normally, you will use the default prober returned by ``UsbSerialProber.getDefaultProber()``, which uses the built-in list of well-known VIDs and PIDs that are supported by our drivers.
 
@@ -82,12 +74,20 @@ List<UsbSerialDriver> drivers = prober.FindAllDrivers(usbManager);
 Of course, nothing requires you to use UsbSerialProber at all: you can instantiate driver classes directly if you know what you're doing; just supply a compatible UsbDevice.
 
 
-## Compatible Devices
+## Compatible Serial Chipsets
 
-* *Serial chips:* FT232R, CDC/ACM (eg Arduino Uno) and possibly others.
-  See [CompatibleSerialDevices](https://github.com/mik3y/usb-serial-for-android/wiki/Compatible-Serial-Devices).
-* *Android phones and tablets:* Nexus 7, Motorola Xoom, and many others.
-  See [CompatibleAndroidDevices](https://github.com/mik3y/usb-serial-for-android/wiki/Compatible-Android-Devices).
+* FTDI:  
+FT232R, FT2232H, FT4232H, FT232H, FT230X, FT231X, FT234XD
+* CP210x:   
+UART Bridge, CP2102, CP2105, CP2108
+* Prolific PL2303:   
+PL2303HX, PL2303HXD, PL2303TA, PL2303GC, PL2303GB, PL2303GT, PL2303GL, PL2303GE, PL2303GS
+* Qinheng CH34x:   
+CH340, CH341A
+* CDC Driver:   
+Arduino, Teensyduino, Atmel Lufa, ARM mbed, ST CDC, Raspberry Pi Pico Micropython, Raspberry Pi Pico SDK, Qinheng CH9102F, IOIO OTG, Elatec TWN4 OTG
+
+Additional devices can be easily added.
 
 ## Additional information
 
@@ -110,4 +110,4 @@ This library is licensed under the MIT License. Please see [LICENSE.txt](https:/
 
 Copyright 2017, Tyler Technologies. All Rights Reserved. Portions of this library are based on the [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android) and [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) libraries. Their rights remain intact.
 
-The icon used for the demo app was derived from [Serial to USB by Bonegolem](https://thenounproject.com/browse/icons/term/serial-to-usb/) (CC BY 3.0)
+The icon used for the repo, nuget package, and demo app was derived from [Serial to USB by Bonegolem](https://thenounproject.com/browse/icons/term/serial-to-usb/) (CC BY 3.0)

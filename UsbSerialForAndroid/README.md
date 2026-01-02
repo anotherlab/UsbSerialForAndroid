@@ -1,6 +1,6 @@
 # UsbSerialForAndroid
 
-This is a driver library to allow your Microsoft Android app to communicate with many common USB serial hardware. It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
+This is a .NET driver library to allow your Microsoft Android app to communicate with many common USB serial hardware. It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
 available on Android 3.1+.
 
 No root access, ADK, or special kernel drivers are required; all drivers are implemented in
@@ -38,7 +38,7 @@ If you are seeing this from the nuget package, the source code for this library 
 **6.** Refer to [MainActivity.cs](https://github.com/anotherlab/UsbSerialForAndroid/blob/main/UsbSerialForAndroidDemo/MainActivity.cs) in the example app to see how connect to a serial device and read data from it.
 
 ## Working with unrecognized devices
-The UsbSerialForAndroid has been compiled with the Vendor ID/Product ID pairs for many common serial devices. If you have a device that is not defined by the library, but will work with one of the drivers, you can manually add the VID/PID pair. If you have a device that is not in the GetSupportedDevices() method for that driver, you can submit a pull request that adds the vendor and product IDs to that driver.
+The UsbSerialForAndroid library has been compiled with the Vendor ID/Product ID pairs for many common serial devices. If you have a device that is not defined by the library, but will work with one of the drivers, you can manually add the VID/PID pair. If you have a device that is not in the GetSupportedDevices() method for that driver, you can submit a pull request that adds the vendor and product IDs to that driver.
 
 UsbSerialProber is a class to help you find and instantiate compatible UsbSerialDrivers from the tree of connected UsbDevices. Normally, you will use the default prober returned by ``UsbSerialProber.getDefaultProber()``, which uses the built-in list of well-known VIDs and PIDs that are supported by our drivers.
 
@@ -60,12 +60,20 @@ List<UsbSerialDriver> drivers = prober.FindAllDrivers(usbManager);
 Of course, nothing requires you to use UsbSerialProber at all: you can instantiate driver classes directly if you know what you're doing; just supply a compatible UsbDevice.
 
 
-## Compatible Devices
+## Compatible Serial Chipsets
 
-* *Serial chips:* FT232R, CDC/ACM (eg Arduino Uno) and possibly others.
-  See [CompatibleSerialDevices](https://github.com/mik3y/usb-serial-for-android/wiki/Compatible-Serial-Devices).
-* *Android phones and tablets:* Nexus 7, Motorola Xoom, and many others.
-  See [CompatibleAndroidDevices](https://github.com/mik3y/usb-serial-for-android/wiki/Compatible-Android-Devices).
+* FTDI:  
+FT232R, FT2232H, FT4232H, FT232H, FT230X, FT231X, FT234XD
+* CP210x:   
+UART Bridge, CP2102, CP2105, CP2108
+* Prolific PL2303:   
+PL2303HX, PL2303HXD, PL2303TA, PL2303GC, PL2303GB, PL2303GT, PL2303GL, PL2303GE, PL2303GS
+* Qinheng CH34x:   
+CH340, CH341A
+* CDC Driver:   
+Arduino, Teensyduino, Atmel Lufa, ARM mbed, ST CDC, Raspberry Pi Pico Micropython, Raspberry Pi Pico SDK, Qinheng CH9102F, IOIO OTG, Elatec TWN4 OTG
+
+Additional devices can be easily added.
 
 ## Additional information
 
@@ -88,4 +96,4 @@ This library is licensed under the MIT License. Please see [LICENSE.txt](https:/
 
 Copyright 2017, Tyler Technologies. All Rights Reserved. Portions of this library are based on the [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android) and [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) libraries. Their rights remain intact.
 
-The icon used for the demo app was derived from [Serial to USB by Bonegolem](https://thenounproject.com/browse/icons/term/serial-to-usb/) (CC BY 3.0)
+The icon used for the repo, nuget package, and demo app was derived from [Serial to USB by Bonegolem](https://thenounproject.com/browse/icons/term/serial-to-usb/) (CC BY 3.0)

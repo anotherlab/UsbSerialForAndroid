@@ -11,7 +11,7 @@ This is a C# port of Mike Wakerly's Java [usb-serial-for-android](https://github
 
 It also includes code derived from a portion of LusoVU's [XamarinUsbSerial](https://bitbucket.org/lusovu/xamarinusbserial) library. XamarinUsbSerial was a C# wrapper for the Java usb-serial-for-android. It used an older version of the usb-serial-for-android .jar file. Only the C# code was used, the Java library is not referenced.
 
-This library supports .NET 10 and Microsoft Android. Support for Xamarin Android and previous versions of .NET have been dropped. Sample application has been replaced with a new app demo. If you need the old demo or want to support older versions of .NET, please use [verson 1.1.1](https://github.com/anotherlab/UsbSerialForAndroid/releases/tag/v1.1.1).
+This library supports .NET 10 and Microsoft Android. Support for Xamarin Android and previous versions of .NET have been dropped. Sample application has been replaced with a new app demo. If you need the old demo or want to support older versions of .NET, please use [version 1.1.1](https://github.com/anotherlab/UsbSerialForAndroid/releases/tag/v1.1.1).
 
 If you are seeing this from the nuget package, the source code for this library and demo project can be accessed via the Github repo [UsbSerialForAndroid](https://github.com/anotherlab/UsbSerialForAndroid).
 

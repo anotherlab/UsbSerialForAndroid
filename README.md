@@ -1,4 +1,5 @@
-# UsbSerialForAndroid
+# ![Logo](UsbSerialForAndroid/icon.png) UsbSerialForAndroid
+[![NuGet version (usbserialforandroid)](https://img.shields.io/nuget/v/usbserialforandroid?style=flat-square)](https://www.nuget.org/usbserialforandroid/)
 
 This is a driver library to allow your Microsoft Android app to communicate with many common USB serial hardware. It uses the [Android USB Host API](http://developer.android.com/guide/topics/connectivity/usb/host.html)
 available on Android 3.1+.
@@ -19,10 +20,10 @@ git fetch origin
 git branch -u origin/main main
 git remote set-head origin -a
 ```
-This library supports .NET 10 and Microsoft Android. Support for Xamarin Android and previous versions of .NET have been dropped. Sample application has been replaced with a new app demo. If you need the old demo or want to support older versions of .NET, please use [verson 1.1.1](https://github.com/anotherlab/UsbSerialForAndroid/releases/tag/v1.1.1).
+This library supports .NET 10 and Microsoft Android. Support for Xamarin Android and previous versions of .NET have been dropped. Sample application has been replaced with a new app demo. If you need the old demo or want to support older versions of .NET, please use [version 1.1.1](https://github.com/anotherlab/UsbSerialForAndroid/releases/tag/v1.1.1).
 
 ## Breaking changes
-I'm cleaning up the code in order to publish this as a nuget package. Someone created a nuget package based on a two year old version of this code base and published to nuget under their own name (and without credit to the original authors). I changed the root namespace from `Hoho.Android.UsbSerial` to `Anotherlab.UsbSerialForAndroid` to make it easier to find on nuget. 
+I cleaned up the code in order to publish this as a nuget package. Someone created a nuget package based on a two year old version of this code base and published to nuget under their own name (and without credit to the original authors). I changed the root namespace from `Hoho.Android.UsbSerial` to `Anotherlab.UsbSerialForAndroid` to make it easier to manage on nuget. 
 
 The "Hoho" namespace came from original Java library package name, [usb-serial-for-android](https://github.com/mik3y/usb-serial-for-android), and while I based this code from that library, they are separate.
 
@@ -34,10 +35,10 @@ This solution contains two projects and a slnx solution file.
 * UsbSerialForAndroidDemo - A Microsoft Android version of the example app that comes with usb-serial-for-android
 
 
-The original demo and the .sln format solution file are deprecated and will be removed in a subsequent update.
+The original demo and the .sln format solution file were deprecated and removed removed prior to this release. As mentioned above, the last version of those files were in in [version 1.1.1](https://github.com/anotherlab/UsbSerialForAndroid/releases/tag/v1.1.1).
 
 ## Getting Started
-**1.** Reference the library to your project
+**1.** Grab the package from [nuget](https://www.nuget.org/usbserialforandroid/) or download the repo and and Reference the library to your project.
 
 **2.** Copy the [device_filter.axml](https://github.com/anotherlab/UsbSerialForAndroid/blob/main/UsbSerialForAndroidDemo/Resources/xml/device_filter.xml) from the example app to your Resources/xml folder. Make sure that the Build Action is set to AndroidResource
 
